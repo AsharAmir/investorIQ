@@ -20,11 +20,12 @@ function PrivateRoute({
 }) {
   const { user, loading } = useAuthStore();
 
-  console.log("Loading:", loading);
-  console.log("User:", user);
-
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -48,16 +49,38 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Marketplace />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <>
+                  <Navbar />
+                  <Marketplace />
+                </>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/marketplace"
+            element={
+              <PrivateRoute>
+                <>
+                  <Navbar />
+                  <Marketplace />
+                </>
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/admin"
             element={
               <PrivateRoute adminOnly>
-                <AdminDashboard />
+                <>
+                  <Navbar />
+                  <AdminDashboard />
+                </>
               </PrivateRoute>
             }
           />
