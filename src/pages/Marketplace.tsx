@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Search, Building2 } from "lucide-react";
 import {
   collection,
   onSnapshot,
@@ -16,6 +17,7 @@ import DealAnalyzer from "../components/DealAnalyzer";
 import AskAIModal from "../components/AskAIModal";
 import RequestAdvisorModal from "../components/RequestAdvisorModal";
 import type { Property, AdvisorRequest } from "../types";
+import toast from "react-hot-toast";
 
 export default function Marketplace() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -33,7 +35,6 @@ export default function Marketplace() {
   useEffect(() => {
     if (!user) return;
 
-    // Simplified query without ordering to avoid index requirement
     const propertiesQuery = query(
       collection(db, "properties"),
       where("userId", "==", user.id)
@@ -50,7 +51,6 @@ export default function Marketplace() {
             new Date().toISOString(),
         } as Property);
       });
-      // Sort in memory instead of using orderBy
       propertyList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       setProperties(propertyList);
     });
@@ -71,7 +71,6 @@ export default function Marketplace() {
             new Date().toISOString(),
         } as AdvisorRequest);
       });
-      // Sort in memory
       requestList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       setAdvisorRequests(requestList);
     });
@@ -95,8 +94,10 @@ export default function Marketplace() {
 
       await addDoc(collection(db, "properties"), propertyData);
       setIsAddModalOpen(false);
+      toast.success("Property added successfully!");
     } catch (error) {
       console.error("Error adding property:", error);
+      toast.error("Failed to add property");
     }
   };
 
@@ -112,66 +113,92 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 space-y-4 sm:space-y-0"
+        >
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Properties</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center">
+              <Building2 className="h-10 w-10 text-indigo-600 mr-3" />
+              My Properties
+            </h1>
+            <p className="mt-2 text-lg text-gray-600">
               Manage and analyze your real estate investments
             </p>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
           >
             <Plus className="h-5 w-5 mr-2" />
             Add Property
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        <div className="mb-6">
-          <div className="relative">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-8"
+        >
+          <div className="relative max-w-xl mx-auto">
             <input
               type="text"
               placeholder="Search properties..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-6 py-4 pl-12 text-lg border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             />
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
           </div>
-        </div>
+        </motion.div>
 
-        {filteredProperties.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              No properties found. Add your first property to get started!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                advisorRequest={getAdvisorRequest(property.id)}
-                onAnalyze={() => {
-                  setSelectedProperty(property);
-                  setIsAnalyzerOpen(true);
-                }}
-                onAskAI={() => {
-                  setSelectedProperty(property);
-                  setIsAIModalOpen(true);
-                }}
-                onRequestAdvisor={() => {
-                  setSelectedProperty(property);
-                  setIsAdvisorModalOpen(true);
-                }}
-              />
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {filteredProperties.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-16"
+            >
+              <Building2 className="mx-auto h-16 w-16 text-gray-400" />
+              <p className="mt-4 text-xl text-gray-600">
+                No properties found. Add your first property to get started!
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {filteredProperties.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  advisorRequest={getAdvisorRequest(property.id)}
+                  onAnalyze={() => {
+                    setSelectedProperty(property);
+                    setIsAnalyzerOpen(true);
+                  }}
+                  onAskAI={() => {
+                    setSelectedProperty(property);
+                    setIsAIModalOpen(true);
+                  }}
+                  onRequestAdvisor={() => {
+                    setSelectedProperty(property);
+                    setIsAdvisorModalOpen(true);
+                  }}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {selectedProperty && (
           <>

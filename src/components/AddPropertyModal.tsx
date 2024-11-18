@@ -1,14 +1,16 @@
-import { useState } from "react";
-import { X, Plus } from "lucide-react";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useState, useCallback } from "react";
+import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { useDropzone } from "react-dropzone";
+import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
+import { storage } from "../lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
-
-const storage = getStorage();
 
 export default function AddPropertyModal({
   isOpen,
@@ -25,121 +27,185 @@ export default function AddPropertyModal({
     description: "",
   });
 
-  if (!isOpen) return null;
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    setUploading(true);
+    const uploadPromises = acceptedFiles.map(async (file) => {
+      try {
+        const uniqueName = `${Date.now()}-${file.name}`;
+        const storageRef = ref(storage, `properties/${uniqueName}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        return url;
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error(`Failed to upload ${file.name}`);
+        return null;
+      }
+    });
+
+    try {
+      const urls = await Promise.all(uploadPromises);
+      const validUrls = urls.filter((url): url is string => url !== null);
+      setImages((prev) => [...prev, ...validUrls]);
+      toast.success("Images uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      toast.error("Failed to upload some images");
+    } finally {
+      setUploading(false);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+    },
+    multiple: true,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (images.length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
     onSubmit({ ...formData, images });
+    toast.success("Property added successfully!");
     onClose();
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setUploading(true);
-      const uploadedUrls: string[] = [];
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const uniqueName = `${file.name}_${Date.now()}`;
-        const storageRef = ref(storage, `properties/${uniqueName}`);
-
-        try {
-          await uploadBytes(storageRef, file);
-          const url = await getDownloadURL(storageRef);
-          uploadedUrls.push(url);
-        } catch (error) {
-          console.error("Error uploading file:", error);
-        }
-      }
-
-      setImages((prevImages) => [...prevImages, ...uploadedUrls]);
-      setUploading(false);
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm"
+    >
       <div className="flex items-center justify-center min-h-screen px-4">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        />
-        <div className="relative bg-white rounded-lg max-w-lg w-full p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="relative bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
               Add New Property
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-gray-400 hover:text-gray-500 transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Property Images
               </label>
-              <div className="mt-1 flex items-center space-x-4">
-                {images.map((url, index) => (
-                  <div key={index} className="relative w-20 h-20">
-                    <img
-                      src={url}
-                      alt="Property"
-                      className="w-full h-full object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setImages(images.filter((_, i) => i !== index))
-                      }
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-                <label className="w-20 h-20 flex items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-gray-400">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                  <Plus className="h-6 w-6 text-gray-400" />
-                </label>
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                  isDragActive
+                    ? "border-indigo-500 bg-indigo-50"
+                    : "border-gray-300 hover:border-indigo-400"
+                }`}
+              >
+                <input {...getInputProps()} />
+                <div className="flex flex-col items-center space-y-2">
+                  <Upload className="h-8 w-8 text-gray-400" />
+                  <p className="text-sm text-gray-600">
+                    {isDragActive
+                      ? "Drop the files here..."
+                      : "Drag & drop images here, or click to select"}
+                  </p>
+                </div>
               </div>
-              {uploading && <p className="text-blue-500">Uploading...</p>}
+
+              {uploading && (
+                <div className="mt-4">
+                  <div className="animate-pulse flex space-x-4 items-center">
+                    <div className="h-3 w-3 bg-indigo-500 rounded-full"></div>
+                    <div className="text-sm text-indigo-600">Uploading...</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 grid grid-cols-4 gap-4">
+                <AnimatePresence>
+                  {images.map((url, index) => (
+                    <motion.div
+                      key={url}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="relative aspect-square rounded-lg overflow-hidden group"
+                    >
+                      <img
+                        src={url}
+                        alt={`Property ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImages(images.filter((_, i) => i !== index))
+                        }
+                        className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-6 w-6 text-white" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
 
-            {/* Other form fields */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Title
-              </label>
-              <input
-                type="text"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-              />
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Price
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  value={formData.price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Address
               </label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 value={formData.address}
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
@@ -148,26 +214,11 @@ export default function AddPropertyModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Price
-              </label>
-              <input
-                type="number"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Deal Type
               </label>
               <select
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 value={formData.dealType}
                 onChange={(e) =>
                   setFormData({ ...formData, dealType: e.target.value })
@@ -180,12 +231,12 @@ export default function AddPropertyModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
               <textarea
-                rows={3}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                rows={4}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -193,24 +244,25 @@ export default function AddPropertyModal({
               />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-4 pt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                disabled={uploading}
+                className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Property
               </button>
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

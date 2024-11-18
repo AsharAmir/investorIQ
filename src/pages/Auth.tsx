@@ -1,61 +1,98 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Building2 } from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Building2, Lock, Mail, User } from "lucide-react";
+import { motion } from "framer-motion";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
+
+// Admin credentials for demo
+const ADMIN_EMAIL = "admin@investoriq.com";
+const ADMIN_PASSWORD = "admin123";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+
   const { signIn, signUp } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+
     try {
       if (isLogin) {
+        // Check for admin credentials
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+          await signIn(email, password, true); // Pass true for admin
+          toast.success("Welcome back, Admin!");
+          navigate("/admin");
+          return;
+        }
         await signIn(email, password);
-        navigate('/');
+        toast.success("Successfully signed in!");
+        navigate("/");
       } else {
         await signUp(email, password, name);
-        navigate('/');
+        toast.success("Account created successfully!");
+        navigate("/");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+      toast.error(message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <Building2 className="h-12 w-12 text-indigo-600" />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-slate-50 to-violet-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sm:mx-auto sm:w-full sm:max-w-md"
+      >
+        <motion.div
+          className="flex justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Building2 className="h-12 w-12 text-violet-600" />
+        </motion.div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          {isLogin ? "Sign in to your account" : "Create a new account"}
         </h2>
-      </div>
+        {isLogin && (
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Admin? Use admin@investoriq.com / admin123
+          </p>
+        )}
+      </motion.div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10"
+        >
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Name
                 </label>
-                <input
-                  type="text"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <div className="mt-1 relative">
+                  <input
+                    type="text"
+                    required
+                    className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <User className="h-5 w-5 text-gray-400 absolute left-4 top-3.5" />
+                </div>
               </div>
             )}
 
@@ -63,49 +100,61 @@ export default function Auth() {
               <label className="block text-sm font-medium text-gray-700">
                 Email address
               </label>
-              <input
-                type="email"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <div className="mt-1 relative">
+                <input
+                  type="email"
+                  required
+                  className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Mail className="h-5 w-5 text-gray-400 absolute left-4 top-3.5" />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="mt-1 relative">
+                <input
+                  type="password"
+                  required
+                  className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Lock className="h-5 w-5 text-gray-400 absolute left-4 top-3.5" />
+              </div>
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-xl">
+                {error}
+              </div>
             )}
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
             >
-              {isLogin ? 'Sign in' : 'Sign up'}
-            </button>
+              {isLogin ? "Sign in" : "Sign up"}
+            </motion.button>
           </form>
 
           <div className="mt-6">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center text-sm text-indigo-600 hover:text-indigo-500"
+              className="w-full text-center text-sm text-violet-600 hover:text-violet-500"
             >
-              {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+              {isLogin
+                ? "Need an account? Sign up"
+                : "Already have an account? Sign in"}
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
