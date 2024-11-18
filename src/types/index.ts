@@ -33,7 +33,10 @@ export interface AdvisorRequest {
   userId: string;
   status: 'pending' | 'approved' | 'rejected';
   message: string;
+  response?: string;
   createdAt: string;
-  property: Property;
-  user: User;
+  respondedAt?: string;
+  advisorId?: string;
+  property?: Property;
+  user?: User;
 }

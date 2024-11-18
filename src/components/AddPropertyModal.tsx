@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { X, Upload, Plus } from 'lucide-react';
+import { useState } from "react";
+import { X, Plus } from "lucide-react";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface AddPropertyModalProps {
   isOpen: boolean;
@@ -7,14 +8,21 @@ interface AddPropertyModalProps {
   onSubmit: (data: any) => void;
 }
 
-export default function AddPropertyModal({ isOpen, onClose, onSubmit }: AddPropertyModalProps) {
+const storage = getStorage();
+
+export default function AddPropertyModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: AddPropertyModalProps) {
   const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState<boolean>(false);
   const [formData, setFormData] = useState({
-    title: '',
-    address: '',
-    price: '',
-    dealType: 'Fix & Flip',
-    description: '',
+    title: "",
+    address: "",
+    price: "",
+    dealType: "Fix & Flip",
+    description: "",
   });
 
   if (!isOpen) return null;
@@ -25,38 +33,69 @@ export default function AddPropertyModal({ isOpen, onClose, onSubmit }: AddPrope
     onClose();
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      // In a real app, you'd upload these to a server and get back URLs
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setImages([...images, ...newImages]);
+      setUploading(true);
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const uniqueName = `${file.name}_${Date.now()}`;
+        const storageRef = ref(storage, `properties/${uniqueName}`);
+
+        try {
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          uploadedUrls.push(url);
+        } catch (error) {
+          console.error("Error uploading file:", error);
+        }
+      }
+
+      setImages((prevImages) => [...prevImages, ...uploadedUrls]);
+      setUploading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} />
-        
+        <div
+          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          onClick={onClose}
+        />
         <div className="relative bg-white rounded-lg max-w-lg w-full p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Add New Property</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Add New Property
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500"
+            >
               <X className="h-6 w-6" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Property Images</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Property Images
+              </label>
               <div className="mt-1 flex items-center space-x-4">
                 {images.map((url, index) => (
                   <div key={index} className="relative w-20 h-20">
-                    <img src={url} alt="" className="w-full h-full object-cover rounded" />
+                    <img
+                      src={url}
+                      alt="Property"
+                      className="w-full h-full object-cover rounded"
+                    />
                     <button
                       type="button"
-                      onClick={() => setImages(images.filter((_, i) => i !== index))}
+                      onClick={() =>
+                        setImages(images.filter((_, i) => i !== index))
+                      }
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
                     >
                       <X className="h-4 w-4" />
@@ -74,47 +113,65 @@ export default function AddPropertyModal({ isOpen, onClose, onSubmit }: AddPrope
                   <Plus className="h-6 w-6 text-gray-400" />
                 </label>
               </div>
+              {uploading && <p className="text-blue-500">Uploading...</p>}
             </div>
 
+            {/* Other form fields */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Title</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Title
+              </label>
               <input
                 type="text"
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 value={formData.title}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Address</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Address
+              </label>
               <input
                 type="text"
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 value={formData.address}
-                onChange={e => setFormData({ ...formData, address: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Price</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Price
+              </label>
               <input
                 type="number"
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 value={formData.price}
-                onChange={e => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Deal Type</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Deal Type
+              </label>
               <select
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 value={formData.dealType}
-                onChange={e => setFormData({ ...formData, dealType: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, dealType: e.target.value })
+                }
               >
                 <option>Fix & Flip</option>
                 <option>BRRRR</option>
@@ -123,12 +180,16 @@ export default function AddPropertyModal({ isOpen, onClose, onSubmit }: AddPrope
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
               <textarea
                 rows={3}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
               />
             </div>
 
