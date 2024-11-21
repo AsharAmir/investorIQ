@@ -25,30 +25,25 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        // Check for admin credentials
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-          await signIn(email, password, true); // Pass true for admin
-          toast.success("Welcome back, Admin!");
-          navigate("/admin");
-          return;
-        }
         await signIn(email, password);
-        toast.success("Successfully signed in!");
-        navigate("/");
+        // Navigation will be handled based on user role after sign in
+        if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
         await signUp(email, password, name);
-        toast.success("Account created successfully!");
         navigate("/");
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
-      toast.error(message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-slate-50 to-violet-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-brand-navy/5 via-brand-light/10 to-brand-navy/5 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,13 +54,13 @@ export default function Auth() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          <Building2 className="h-12 w-12 text-violet-600" />
+          <Building2 className="h-12 w-12 text-brand-navy" />
         </motion.div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-brand-navy">
           {isLogin ? "Sign in to your account" : "Create a new account"}
         </h2>
         {isLogin && (
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-brand-navy/70">
             Admin? Use admin@investoriq.com / admin123
           </p>
         )}
@@ -80,14 +75,14 @@ export default function Auth() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-brand-navy">
                   Name
                 </label>
                 <div className="mt-1 relative">
                   <input
                     type="text"
                     required
-                    className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -97,14 +92,14 @@ export default function Auth() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-brand-navy">
                 Email address
               </label>
               <div className="mt-1 relative">
                 <input
                   type="email"
                   required
-                  className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                  className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -113,14 +108,14 @@ export default function Auth() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-brand-navy">
                 Password
               </label>
               <div className="mt-1 relative">
                 <input
                   type="password"
                   required
-                  className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                  className="appearance-none block w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -129,7 +124,7 @@ export default function Auth() {
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-xl">
+              <div className="text-red-600 text-sm bg-red-50 p-4 rounded-xl">
                 {error}
               </div>
             )}
@@ -138,7 +133,7 @@ export default function Auth() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-brand-navy hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-all"
             >
               {isLogin ? "Sign in" : "Sign up"}
             </motion.button>
@@ -147,7 +142,7 @@ export default function Auth() {
           <div className="mt-6">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center text-sm text-violet-600 hover:text-violet-500"
+              className="w-full text-center text-sm text-brand-blue hover:text-brand-navy transition-colors"
             >
               {isLogin
                 ? "Need an account? Sign up"

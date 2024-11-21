@@ -67,49 +67,49 @@ export default function DealAnalyzer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm"
         >
           <div className="flex items-center justify-center min-h-screen px-4">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl"
+              className="relative bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center">
-                  <Calculator className="h-8 w-8 text-indigo-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <Calculator className="h-8 w-8 text-brand-blue mr-3" />
+                  <h2 className="text-2xl font-bold text-brand-navy">
                     Deal Analyzer
                   </h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500 transition-colors"
+                  className="rounded-full p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
                 >
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
               <div className="space-y-6">
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl mb-6">
-                  <h3 className="font-semibold text-indigo-900 mb-2">
+                <div className="bg-gradient-to-r from-brand-navy/5 to-brand-blue/10 p-6 rounded-2xl mb-6">
+                  <h3 className="font-semibold text-brand-navy mb-2">
                     Property Details
                   </h3>
-                  <p className="text-indigo-700">{property.address}</p>
-                  <p className="text-indigo-700">
+                  <p className="text-brand-navy/80">{property.address}</p>
+                  <p className="text-brand-navy/80">
                     Listed Price: ${property.price.toLocaleString()}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
                       Purchase Price
                     </label>
                     <input
                       type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                       value={analysis.purchasePrice}
                       onChange={(e) =>
                         setAnalysis({
@@ -121,12 +121,12 @@ export default function DealAnalyzer({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
                       Estimated Rehab Cost
                     </label>
                     <input
                       type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                       value={analysis.rehabCost}
                       onChange={(e) =>
                         setAnalysis({
@@ -138,12 +138,12 @@ export default function DealAnalyzer({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
                       After Repair Value (ARV)
                     </label>
                     <input
                       type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                       value={analysis.arv}
                       onChange={(e) =>
                         setAnalysis({
@@ -155,12 +155,12 @@ export default function DealAnalyzer({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
                       Holding Costs
                     </label>
                     <input
                       type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
                       value={analysis.holdingCosts}
                       onChange={(e) =>
                         setAnalysis({
@@ -173,7 +173,7 @@ export default function DealAnalyzer({
                 </div>
 
                 {error && (
-                  <div className="text-red-600 text-sm bg-red-50 p-3 rounded-xl">
+                  <div className="text-red-600 text-sm bg-red-50 p-4 rounded-xl">
                     {error}
                   </div>
                 )}
@@ -183,7 +183,7 @@ export default function DealAnalyzer({
                   whileTap={{ scale: 0.98 }}
                   onClick={calculateROI}
                   disabled={loading}
-                  className="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-brand-navy text-white px-6 py-4 rounded-xl hover:bg-brand-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">
@@ -219,17 +219,17 @@ export default function DealAnalyzer({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      className="mt-6 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl"
+                      className="mt-6 p-6 bg-gradient-to-r from-brand-navy/5 to-brand-blue/10 rounded-2xl"
                     >
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      <h3 className="text-xl font-bold text-brand-navy mb-4">
                         Analysis Results
                       </h3>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">
+                          <span className="text-brand-navy/70">
                             Total Investment:
                           </span>
-                          <span className="font-semibold">
+                          <span className="font-semibold text-brand-navy">
                             $
                             {(
                               analysis.purchasePrice +
@@ -239,10 +239,10 @@ export default function DealAnalyzer({
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">
+                          <span className="text-brand-navy/70">
                             Potential Profit:
                           </span>
-                          <span className="font-semibold">
+                          <span className="font-semibold text-brand-navy">
                             $
                             {(
                               analysis.arv -
@@ -252,11 +252,11 @@ export default function DealAnalyzer({
                             ).toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-lg">
-                          <span className="text-gray-600">
+                        <div className="flex justify-between items-center text-lg pt-2 border-t border-brand-navy/10">
+                          <span className="text-brand-navy/70">
                             Return on Investment:
                           </span>
-                          <span className="font-bold text-indigo-600">
+                          <span className="font-bold text-xl text-brand-navy">
                             {analysis.roi.toFixed(2)}%
                           </span>
                         </div>

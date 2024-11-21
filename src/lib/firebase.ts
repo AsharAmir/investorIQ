@@ -7,7 +7,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyACHyc86TxLyNzjw9UmPLl6aG3GUDPb11w",
   authDomain: "investoriq-79baa.firebaseapp.com",
   projectId: "investoriq-79baa",
-  storageBucket: "investoriq-79baa.firebasestorage.app",
+  storageBucket: "investoriq-79baa.appspot.com",
   messagingSenderId: "560065917813",
   appId: "1:560065917813:web:c98b1fda9d2c069c90993c",
   measurementId: "G-1ZRZNLB0DL"

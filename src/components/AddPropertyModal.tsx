@@ -2,9 +2,7 @@ import { useState, useCallback } from "react";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
-import { storage } from "../lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+// import toast from "react-hot-toast";
 
 interface AddPropertyModalProps {
   isOpen: boolean;
@@ -17,7 +15,9 @@ export default function AddPropertyModal({
   onClose,
   onSubmit,
 }: AddPropertyModalProps) {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>([
+    "https://via.placeholder.com/150",
+  ]);
   const [uploading, setUploading] = useState<boolean>(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -27,52 +27,17 @@ export default function AddPropertyModal({
     description: "",
   });
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setUploading(true);
-    const uploadPromises = acceptedFiles.map(async (file) => {
-      try {
-        const uniqueName = `${Date.now()}-${file.name}`;
-        const storageRef = ref(storage, `properties/${uniqueName}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        return url;
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast.error(`Failed to upload ${file.name}`);
-        return null;
-      }
-    });
-
     try {
-      const urls = await Promise.all(uploadPromises);
-      const validUrls = urls.filter((url): url is string => url !== null);
-      setImages((prev) => [...prev, ...validUrls]);
-      toast.success("Images uploaded successfully!");
+      await onSubmit({ ...formData, images });
+      onClose();
     } catch (error) {
-      console.error("Error uploading files:", error);
-      toast.error("Failed to upload some images");
+      console.error("Error submitting form:", error);
     } finally {
       setUploading(false);
     }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
-    },
-    multiple: true,
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (images.length === 0) {
-      toast.error("Please upload at least one image");
-      return;
-    }
-    onSubmit({ ...formData, images });
-    toast.success("Property added successfully!");
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -108,24 +73,6 @@ export default function AddPropertyModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Property Images
               </label>
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  isDragActive
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-gray-300 hover:border-indigo-400"
-                }`}
-              >
-                <input {...getInputProps()} />
-                <div className="flex flex-col items-center space-y-2">
-                  <Upload className="h-8 w-8 text-gray-400" />
-                  <p className="text-sm text-gray-600">
-                    {isDragActive
-                      ? "Drop the files here..."
-                      : "Drag & drop images here, or click to select"}
-                  </p>
-                </div>
-              </div>
 
               {uploading && (
                 <div className="mt-4">
