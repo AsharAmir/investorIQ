@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calculator, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Property, DealAnalysis } from "../types";
@@ -9,16 +9,24 @@ interface DealAnalyzerProps {
   onClose: () => void;
 }
 
+interface EditPropertyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  property: Property | null;
+  setProperty: (property: Property) => void;
+  onConfirm: () => void;
+}
+
 export default function DealAnalyzer({
   property,
   isOpen,
   onClose,
 }: DealAnalyzerProps) {
   const [analysis, setAnalysis] = useState<DealAnalysis>({
-    purchasePrice: property.price,
-    rehabCost: 0,
+    purchase_price: property.price,
+    rehab_cost: 0,
     arv: 0,
-    holdingCosts: 0,
+    holding_costs: 0,
     roi: 0,
   });
   const [loading, setLoading] = useState(false);
@@ -32,29 +40,37 @@ export default function DealAnalyzer({
     setError("");
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/analyze-property",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            purchasePrice: analysis.purchasePrice,
-            rehabCost: analysis.rehabCost,
-            arv: analysis.arv,
-            holdingCosts: analysis.holdingCosts,
-          }),
-        }
-      );
+      const { purchase_price, rehab_cost, arv, holding_costs } = analysis;
 
-      if (!response.ok) throw new Error("Failed to calculate ROI");
+      // Validate inputs to avoid invalid calculations
+      if (purchase_price <= 0 || arv <= 0) {
+        throw new Error("Purchase price and ARV must be greater than zero.");
+      }
 
-      const data = await response.json();
-      setAnalysis((prev) => ({ ...prev, roi: data.roi }));
+      const total_investment = purchase_price + rehab_cost + holding_costs;
+      const net_profit = arv - total_investment;
+      const roi =
+        total_investment > 0 ? (net_profit / total_investment) * 100 : 0;
+
+      // Debugging logs for clarity
+      console.log("Debugging ROI Calculation:");
+      console.log("Purchase Price:", purchase_price);
+      console.log("Rehab Cost:", rehab_cost);
+      console.log("ARV:", arv);
+      console.log("Holding Costs:", holding_costs);
+      console.log("Total Investment:", total_investment);
+      console.log("Net Profit:", net_profit);
+      console.log("ROI:", roi);
+
+      // Update analysis state with calculated ROI
+      setAnalysis((prev) => ({
+        ...prev,
+        roi: parseFloat(roi.toFixed(2)), // Ensure the ROI is a rounded number
+      }));
       setShowResults(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to calculate ROI");
+      console.error("Error in calculateROI:", err);
     } finally {
       setLoading(false);
     }
@@ -110,11 +126,11 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.purchasePrice}
+                      value={analysis.purchase_price}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          purchasePrice: Number(e.target.value),
+                          purchase_price: Number(e.target.value),
                         })
                       }
                     />
@@ -127,11 +143,11 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.rehabCost}
+                      value={analysis.rehab_cost}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          rehabCost: Number(e.target.value),
+                          rehab_cost: Number(e.target.value),
                         })
                       }
                     />
@@ -161,11 +177,11 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.holdingCosts}
+                      value={analysis.holding_costs}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          holdingCosts: Number(e.target.value),
+                          holding_costs: Number(e.target.value),
                         })
                       }
                     />
@@ -214,7 +230,7 @@ export default function DealAnalyzer({
                 </motion.button>
 
                 <AnimatePresence>
-                  {showResults && analysis.roi > 0 && (
+                  {showResults && (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -232,9 +248,9 @@ export default function DealAnalyzer({
                           <span className="font-semibold text-brand-navy">
                             $
                             {(
-                              analysis.purchasePrice +
-                              analysis.rehabCost +
-                              analysis.holdingCosts
+                              analysis.purchase_price +
+                              analysis.rehab_cost +
+                              analysis.holding_costs
                             ).toLocaleString()}
                           </span>
                         </div>
@@ -246,9 +262,9 @@ export default function DealAnalyzer({
                             $
                             {(
                               analysis.arv -
-                              (analysis.purchasePrice +
-                                analysis.rehabCost +
-                                analysis.holdingCosts)
+                              (analysis.purchase_price +
+                                analysis.rehab_cost +
+                                analysis.holding_costs)
                             ).toLocaleString()}
                           </span>
                         </div>
@@ -270,5 +286,153 @@ export default function DealAnalyzer({
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+export function EditPropertyModal({
+  isOpen,
+  onClose,
+  property,
+  setProperty,
+  onConfirm,
+}: EditPropertyModalProps) {
+  const [formData, setFormData] = useState<Property | null>(null);
+
+  useEffect(() => {
+    if (property) {
+      setFormData(property);
+    }
+  }, [property]);
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+
+    if (formData) {
+      const updatedValue =
+        name === "price" ? (value === "" ? 0 : Number(value)) : value;
+
+      // Update local state for `formData`
+      setFormData((prev) => ({
+        ...prev!,
+        [name]: updatedValue,
+      }));
+
+      // Update parent property state explicitly with Property type
+      setProperty({
+        ...formData,
+        [name]: updatedValue,
+      });
+    }
+  };
+
+  if (!isOpen || !formData) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="relative bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Edit Property</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500 transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          <form className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Price
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price === 0 ? "" : formData.price}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Address
+              </label>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deal Type
+              </label>
+              <select
+                name="deal_type"
+                value={formData.deal_type}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              >
+                <option>Fix & Flip</option>
+                <option>BRRRR</option>
+                <option>Both</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                rows={4}
+                value={formData.description || ""}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

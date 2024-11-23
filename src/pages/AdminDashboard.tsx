@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, CheckCircle, XCircle, Clock } from "lucide-react";
-import {
-  collection,
-  query,
-  onSnapshot,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "../lib/firebase";
 import { useAuthStore } from "../store/authStore";
+import { supabase } from "../lib/supabase";
 import type { AdvisorRequest } from "../types";
 
 export default function AdminDashboard() {
@@ -27,27 +20,20 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Simplified query without ordering to avoid index requirement
-    const q = query(collection(db, "advisor_requests"));
+    const fetchRequests = async () => {
+      const { data, error } = await supabase
+        .from("advisor_requests")
+        .select("*");
 
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
-      const requestsData: AdvisorRequest[] = [];
-      for (const docRef of snapshot.docs) {
-        const data = docRef.data() as AdvisorRequest;
-        requestsData.push({
-          ...data,
-          id: docRef.id,
-          createdAt:
-            data.createdAt?.toDate?.().toISOString() ||
-            new Date().toISOString(),
-        });
+      if (error) {
+        console.error("Error fetching advisor requests:", error);
+        return;
       }
-      // Sort in memory instead of using orderBy
-      requestsData.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      setRequests(requestsData);
-    });
 
-    return () => unsubscribe();
+      setRequests(data as AdvisorRequest[]);
+    };
+
+    fetchRequests();
   }, [user, navigate]);
 
   const handleResponse = async (
@@ -57,17 +43,35 @@ export default function AdminDashboard() {
     if (!selectedRequest) return;
 
     try {
-      await updateDoc(doc(db, "advisor_requests", requestId), {
-        status,
-        response,
-        respondedAt: new Date(),
-        advisorId: user?.id,
-      });
+      const { error } = await supabase
+        .from("advisor_requests")
+        .update({
+          status,
+          response,
+          responded_at: new Date().toISOString(),
+          advisor_id: user?.id,
+        })
+        .eq("id", requestId);
+
+      if (error) {
+        throw error;
+      }
 
       setSelectedRequest(null);
       setResponse("");
+      // Refresh the requests list
+      const { data, error: fetchError } = await supabase
+        .from("advisor_requests")
+        .select("*");
+
+      if (fetchError) {
+        console.error("Error fetching advisor requests:", fetchError);
+        return;
+      }
+
+      setRequests(data as AdvisorRequest[]);
     } catch (error) {
-      console.error("Error updating request:", error);
+      console.error("Error updating advisor request:", error);
     }
   };
 

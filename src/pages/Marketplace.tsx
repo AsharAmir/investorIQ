@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Building2 } from "lucide-react";
-import {
-  collection,
-  onSnapshot,
-  query,
-  where,
-  addDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../lib/firebase";
 import { useAuthStore } from "../store/authStore";
 import PropertyCard from "../components/PropertyCard";
 import AddPropertyModal from "../components/AddPropertyModal";
 import DealAnalyzer from "../components/DealAnalyzer";
 import AskAIModal from "../components/AskAIModal";
 import RequestAdvisorModal from "../components/RequestAdvisorModal";
+import { supabase } from "../lib/supabase";
 import type { Property, AdvisorRequest } from "../types";
 import toast from "react-hot-toast";
 
@@ -35,50 +27,47 @@ export default function Marketplace() {
   useEffect(() => {
     if (!user) return;
 
-    const propertiesQuery = query(
-      collection(db, "properties"),
-      where("userId", "==", user.id)
-    );
+    // Fetch properties for the logged-in user
+    const fetchProperties = async () => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-    const unsubscribeProperties = onSnapshot(propertiesQuery, (snapshot) => {
-      const propertyList: Property[] = [];
-      snapshot.forEach((doc) => {
-        propertyList.push({
-          id: doc.id,
-          ...doc.data(),
-          createdAt:
-            doc.data().createdAt?.toDate?.().toISOString() ||
-            new Date().toISOString(),
-        } as Property);
-      });
-      propertyList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      setProperties(propertyList);
-    });
+      if (error) {
+        console.error("Error fetching properties:", error);
+        toast.error("Failed to load properties");
+        return;
+      }
 
-    const requestsQuery = query(
-      collection(db, "advisor_requests"),
-      where("userId", "==", user.id)
-    );
-
-    const unsubscribeRequests = onSnapshot(requestsQuery, (snapshot) => {
-      const requestList: AdvisorRequest[] = [];
-      snapshot.forEach((doc) => {
-        requestList.push({
-          id: doc.id,
-          ...doc.data(),
-          createdAt:
-            doc.data().createdAt?.toDate?.().toISOString() ||
-            new Date().toISOString(),
-        } as AdvisorRequest);
-      });
-      requestList.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      setAdvisorRequests(requestList);
-    });
-
-    return () => {
-      unsubscribeProperties();
-      unsubscribeRequests();
+      setProperties(
+        (data || []).map((property) => ({
+          ...property,
+          deal_type: property.deal_type as "Fix & Flip" | "BRRRR" | "Both",
+        }))
+      );
     };
+
+    // Fetch advisor requests for the logged-in user
+    const fetchAdvisorRequests = async () => {
+      const { data, error } = await supabase
+        .from("advisor_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching advisor requests:", error);
+        toast.error("Failed to load advisor requests");
+        return;
+      }
+
+      setAdvisorRequests((data || []) as AdvisorRequest[]);
+    };
+
+    fetchProperties();
+    fetchAdvisorRequests();
   }, [user]);
 
   const handleAddProperty = async (data: any) => {
@@ -87,14 +76,34 @@ export default function Marketplace() {
     try {
       const propertyData = {
         ...data,
-        userId: user.id,
-        createdAt: serverTimestamp(),
-        iqScore: Math.floor(Math.random() * 5) + 5,
+        user_id: user.id,
+        iq_score: Math.floor(Math.random() * 5) + 5, // Random IQ score
       };
 
-      await addDoc(collection(db, "properties"), propertyData);
+      const { error } = await supabase
+        .from("properties")
+        .insert([propertyData]);
+
+      if (error) {
+        console.error("Error adding property:", error);
+        toast.error("Failed to add property");
+        return;
+      }
+
       setIsAddModalOpen(false);
       toast.success("Property added successfully!");
+      // Refetch properties
+      const { data: updatedProperties } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      setProperties(
+        (updatedProperties || []).map((property) => ({
+          ...property,
+          deal_type: property.deal_type as "Fix & Flip" | "BRRRR" | "Both",
+        }))
+      );
     } catch (error) {
       console.error("Error adding property:", error);
       toast.error("Failed to add property");
@@ -105,11 +114,29 @@ export default function Marketplace() {
     (property) =>
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.dealType.toLowerCase().includes(searchTerm.toLowerCase())
+      property.deal_type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getAdvisorRequest = (propertyId: string) => {
-    return advisorRequests.find((request) => request.propertyId === propertyId);
+    return advisorRequests.find(
+      (request) => request.property_id === propertyId
+    );
+  };
+
+  // Function to handle property edits
+  const handleEditProperty = (updatedProperty: Property) => {
+    setProperties((prevProperties) =>
+      prevProperties.map((property) =>
+        property.id === updatedProperty.id ? updatedProperty : property
+      )
+    );
+  };
+
+  // Function to handle property deletions
+  const handleDeleteProperty = (deletedPropertyId: string) => {
+    setProperties((prevProperties) =>
+      prevProperties.filter((property) => property.id !== deletedPropertyId)
+    );
   };
 
   return (
@@ -194,6 +221,9 @@ export default function Marketplace() {
                     setSelectedProperty(property);
                     setIsAdvisorModalOpen(true);
                   }}
+                  // Add these props:
+                  onEdit={handleEditProperty}
+                  onDelete={handleDeleteProperty}
                 />
               ))}
             </motion.div>

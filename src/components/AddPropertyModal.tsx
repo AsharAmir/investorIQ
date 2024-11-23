@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-// import toast from "react-hot-toast";
+import { uploadImage } from "../lib/supabase";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
 
 interface AddPropertyModalProps {
   isOpen: boolean;
@@ -15,10 +17,9 @@ export default function AddPropertyModal({
   onClose,
   onSubmit,
 }: AddPropertyModalProps) {
-  const [images, setImages] = useState<string[]>([
-    "https://via.placeholder.com/150",
-  ]);
-  const [uploading, setUploading] = useState<boolean>(false);
+  const { user } = useAuthStore();
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     address: "",
@@ -27,42 +28,82 @@ export default function AddPropertyModal({
     description: "",
   });
 
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (!user) {
+        toast.error("Please login first");
+        return;
+      }
+
+      setUploading(true);
+      try {
+        const uploadPromises = acceptedFiles.map((file) =>
+          uploadImage(file, `${user.id}`)
+        );
+        const uploadedUrls = await Promise.all(uploadPromises);
+        setImages((prev) => [...prev, ...uploadedUrls]);
+        toast.success("Images uploaded successfully!");
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Failed to upload images");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [user]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+    },
+    maxSize: 5242880,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploading(true);
+    if (!user) {
+      toast.error("Please login first");
+      return;
+    }
+
     try {
-      await onSubmit({ ...formData, images });
+      const propertyData = {
+        ...formData,
+        images,
+        user_id: user.id,
+      };
+
+      await onSubmit(propertyData);
+      setFormData({
+        title: "",
+        address: "",
+        price: "",
+        dealType: "Fix & Flip",
+        description: "",
+      });
+      setImages([]);
       onClose();
     } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setUploading(false);
+      console.error("Error adding property:", error);
+      toast.error("Failed to add property");
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm"
-    >
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
       <div className="flex items-center justify-center min-h-screen px-4">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="relative bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl"
-        >
+        <div className="relative bg-white rounded-xl max-w-2xl w-full p-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
               Add New Property
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 transition-colors"
+              className="text-gray-400 hover:text-gray-500"
             >
               <X className="h-6 w-6" />
             </button>
@@ -73,6 +114,27 @@ export default function AddPropertyModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Property Images
               </label>
+              <div
+                {...getRootProps()}
+                className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg ${
+                  isDragActive
+                    ? "border-indigo-500 bg-indigo-50"
+                    : "border-gray-300"
+                }`}
+              >
+                <div className="space-y-1 text-center">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="flex text-sm text-gray-600">
+                    <input {...getInputProps()} />
+                    <p className="pl-1">
+                      Drag & drop images here, or click to select
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    PNG, JPG, WEBP up to 5MB
+                  </p>
+                </div>
+              </div>
 
               {uploading && (
                 <div className="mt-4">
@@ -121,7 +183,7 @@ export default function AddPropertyModal({
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
@@ -136,7 +198,7 @@ export default function AddPropertyModal({
                 <input
                   type="number"
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   value={formData.price}
                   onChange={(e) =>
                     setFormData({ ...formData, price: e.target.value })
@@ -152,7 +214,7 @@ export default function AddPropertyModal({
               <input
                 type="text"
                 required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.address}
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
@@ -165,7 +227,7 @@ export default function AddPropertyModal({
                 Deal Type
               </label>
               <select
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.dealType}
                 onChange={(e) =>
                   setFormData({ ...formData, dealType: e.target.value })
@@ -183,7 +245,7 @@ export default function AddPropertyModal({
               </label>
               <textarea
                 rows={4}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -191,25 +253,25 @@ export default function AddPropertyModal({
               />
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6">
+            <div className="flex justify-end space-x-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={uploading}
-                className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Property
               </button>
             </div>
           </form>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,16 +1,8 @@
 import { create } from 'zustand';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import type { User } from '../types';
 import toast from 'react-hot-toast';
 
-// Admin credentials
 const ADMIN_EMAIL = 'admin@investoriq.com';
 
 interface AuthState {
@@ -27,70 +19,73 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
   signIn: async (email, password) => {
     try {
-      const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Get or create user document
-      const userDocRef = doc(db, 'users', firebaseUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (!userDoc.exists()) {
-        // Create new user document
-        const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-        const userData: User = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email || email,
-          name: email.split('@')[0],
-          role: isAdmin ? 'admin' : 'user'
-        };
-        
-        await setDoc(userDocRef, userData);
-        set({ user: userData });
-        toast.success(`Welcome ${isAdmin ? 'Admin' : userData.name}!`);
-      } else {
-        // Use existing user data
-        const userData = userDoc.data() as User;
-        
-        // Update role if admin email
-        if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && userData.role !== 'admin') {
-          const updatedData = { ...userData, role: 'admin' };
-          await setDoc(userDocRef, updatedData, { merge: true });
-          set({ user: updatedData });
-          toast.success('Welcome back, Admin!');
-        } else {
-          set({ user: userData });
-          toast.success(`Welcome back, ${userData.name}!`);
-        }
-      }
+      const { data: { user } } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (!user) throw new Error('No user found');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      const userData: User = {
+        id: user.id,
+        email: user.email!,
+        name: profile?.name || email.split('@')[0],
+        role: isAdmin ? 'admin' : 'user',
+        avatar: profile?.avatar_url ?? undefined,
+      };
+
+      set({ user: userData });
+      toast.success(`Welcome back, ${userData.name}!`);
     } catch (error) {
       console.error('Sign in error:', error);
-      toast.error('Failed to sign in. Please check your credentials.');
+      toast.error('Failed to sign in');
       throw error;
     }
   },
   signUp: async (email, password, name) => {
     try {
-      const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
-      
+      const { data: { user } } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+        },
+      });
+
+      if (!user) throw new Error('No user created');
+
       const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
       const userData: User = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email || email,
+        id: user.id,
+        email: user.email!,
         name,
-        role: isAdmin ? 'admin' : 'user'
+        role: isAdmin ? 'admin' : 'user',
       };
-      
-      await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+
+      await supabase.from('profiles').insert([{
+        id: user.id,
+        name,
+        email: user.email,
+      }]);
+
       set({ user: userData });
       toast.success('Account created successfully!');
     } catch (error) {
       console.error('Sign up error:', error);
-      toast.error('Failed to create account.');
+      toast.error('Failed to create account');
       throw error;
     }
   },
   signOut: async () => {
     try {
-      await firebaseSignOut(auth);
+      await supabase.auth.signOut();
       set({ user: null });
       toast.success('Signed out successfully');
     } catch (error) {
@@ -100,43 +95,32 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   checkAuth: async () => {
-    return new Promise<void>((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-          try {
-            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-            if (userDoc.exists()) {
-              const userData = userDoc.data() as User;
-              // Ensure admin status is correct
-              if (firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() && userData.role !== 'admin') {
-                const updatedData = { ...userData, role: 'admin' };
-                await setDoc(doc(db, 'users', firebaseUser.uid), updatedData, { merge: true });
-                set({ user: updatedData, loading: false });
-              } else {
-                set({ user: userData, loading: false });
-              }
-            } else {
-              // Create user document if it doesn't exist
-              const isAdmin = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-              const userData: User = {
-                id: firebaseUser.uid,
-                email: firebaseUser.email || '',
-                name: firebaseUser.email?.split('@')[0] || 'User',
-                role: isAdmin ? 'admin' : 'user'
-              };
-              await setDoc(doc(db, 'users', firebaseUser.uid), userData);
-              set({ user: userData, loading: false });
-            }
-          } catch (error) {
-            console.error('Error checking auth:', error);
-            set({ user: null, loading: false });
-          }
-        } else {
-          set({ user: null, loading: false });
-        }
-        unsubscribe();
-        resolve();
-      });
-    });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        const isAdmin = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const userData: User = {
+          id: user.id,
+          email: user.email!,
+          name: profile?.name || user.email!.split('@')[0],
+          role: isAdmin ? 'admin' : 'user',
+          avatar: profile?.avatar_url ?? undefined,
+        };
+
+        set({ user: userData, loading: false });
+      } else {
+        set({ user: null, loading: false });
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      set({ user: null, loading: false });
+    }
   },
 }));

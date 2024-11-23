@@ -22,11 +22,11 @@ GOOGLE_API_KEY = os.getenv('GEMINI_API_KEY')  # Get the API key from .env file
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-pro')
 
-def calculate_roi(purchase_price, rehab_cost, arv, holding_costs):
-    total_investment = purchase_price + rehab_cost + holding_costs
-    net_profit = arv - total_investment
-    roi = (net_profit / total_investment) * 100
-    return roi
+# def calculate_roi(purchase_price, rehab_cost, arv, holding_costs):
+#     total_investment = purchase_price + rehab_cost + holding_costs
+#     net_profit = arv - total_investment
+#     roi = (net_profit / total_investment) * 100
+#     return roi
 
 @app.route('/api/properties', methods=['GET'])
 def get_properties():
@@ -48,19 +48,19 @@ def add_property():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/analyze-property', methods=['POST'])
-def analyze_property():
-    try:
-        data = request.json
-        roi = calculate_roi(
-            float(data['purchasePrice']),
-            float(data['rehabCost']),
-            float(data['arv']),
-            float(data['holdingCosts'])
-        )
-        return jsonify({"roi": roi}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# @app.route('/api/analyze-property', methods=['POST'])
+# def analyze_property():
+#     try:
+#         data = request.json
+#         roi = calculate_roi(
+#             float(data['purchasePrice']),
+#             float(data['rehabCost']),
+#             float(data['arv']),
+#             float(data['holdingCosts'])
+#         )
+#         return jsonify({"roi": roi}), 200
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ask-ai', methods=['POST'])
 def ask_ai():

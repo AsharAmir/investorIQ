@@ -1,16 +1,3 @@
-export interface Property {
-  id: string;
-  title: string;
-  address: string;
-  price: number;
-  iqScore: number;
-  dealType: 'Fix & Flip' | 'BRRRR' | 'Both';
-  description: string;
-  images: string[];
-  createdAt: string;
-  userId: string;
-}
-
 export interface User {
   id: string;
   name: string;
@@ -19,24 +6,45 @@ export interface User {
   role: 'user' | 'admin';
 }
 
+
+export type Property = {
+  id: string;
+  title: string;
+  address: string;
+  price: number;
+  description: string | null;
+  images: string[];
+  iq_score: number;
+  user_id: string;
+  created_at: string;
+  deal_type?: "Fix & Flip" | "BRRRR" | "Both";
+};
+
+
 export interface DealAnalysis {
-  purchasePrice: number;
-  rehabCost: number;
+  purchase_price: number;
+  rehab_cost: number;
   arv: number;
-  holdingCosts: number;
+  holding_costs: number;
   roi: number;
 }
 
 export interface AdvisorRequest {
   id: string;
-  propertyId: string;
-  userId: string;
+  property_id: string;
+  user_id: string;
   status: 'pending' | 'approved' | 'rejected';
   message: string;
   response?: string;
-  createdAt: string;
-  respondedAt?: string;
-  advisorId?: string;
-  property?: Property;
-  user?: User;
+  created_at: string;
+  responded_at?: string;
+  advisor_id?: string;
+  properties?: Property;
+  profiles?: User;
+  property?:{
+    title: string;
+  };
+  user?:{
+    name: string;
+  };
 }
