@@ -91,7 +91,13 @@ export default function AskAIModal({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">IQ Score</p>
-                  <p className="text-gray-900">{property.iqScore}/10</p>
+                  <p className="text-gray-900">{property.iq_score}/10</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-gray-500">
+                    Description
+                  </p>
+                  <p className="text-gray-900">{property.description}</p>
                 </div>
               </div>
             </div>

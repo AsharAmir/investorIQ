@@ -21,9 +21,18 @@ export default function AdminDashboard() {
     }
 
     const fetchRequests = async () => {
-      const { data, error } = await supabase
-        .from("advisor_requests")
-        .select("*");
+      const { data, error } = await supabase.from("advisor_requests").select(`
+          *,
+          properties (
+            title,
+            address,
+            price
+          ),
+          profiles!advisor_requests_user_id_fkey (
+            name,
+            email
+          )
+        `);
 
       if (error) {
         console.error("Error fetching advisor requests:", error);
@@ -59,10 +68,21 @@ export default function AdminDashboard() {
 
       setSelectedRequest(null);
       setResponse("");
-      // Refresh the requests list
-      const { data, error: fetchError } = await supabase
-        .from("advisor_requests")
-        .select("*");
+
+      const { data, error: fetchError } = await supabase.from(
+        "advisor_requests"
+      ).select(`
+          *,
+          properties (
+            title,
+            address,
+            price
+          ),
+          profiles!advisor_requests_user_id_fkey (
+            name,
+            email
+          )
+        `);
 
       if (fetchError) {
         console.error("Error fetching advisor requests:", fetchError);
@@ -124,13 +144,21 @@ export default function AdminDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {request.property?.title ||
+                        {request.properties?.title ||
                           "Property Details Unavailable"}
                       </h3>
                       {getStatusBadge(request.status)}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
-                      From: {request.user?.name || "Unknown User"}
+                      From: {request.profiles?.name || "Unknown User"} (
+                      {request.profiles?.email || "No Email"})
+                    </p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Address: {request.properties?.address || "N/A"}
+                    </p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Price: $
+                      {request.properties?.price?.toLocaleString() || "N/A"}
                     </p>
                     <p className="text-sm text-gray-600 mb-4">
                       Message: {request.message}
