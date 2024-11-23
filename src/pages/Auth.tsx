@@ -59,11 +59,11 @@ export default function Auth() {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-brand-navy">
           {isLogin ? "Sign in to your account" : "Create a new account"}
         </h2>
-        {isLogin && (
+        {/* {isLogin && (
           <p className="mt-2 text-center text-sm text-brand-navy/70">
             Admin? Use admin@investoriq.com / admin123
           </p>
-        )}
+        )} */}
       </motion.div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
