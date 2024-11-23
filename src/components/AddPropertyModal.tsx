@@ -58,7 +58,7 @@ export default function AddPropertyModal({
     accept: {
       "image/*": [".jpeg", ".jpg", ".png", ".webp"],
     },
-    maxSize: 5242880,
+    maxSize: 5242880, //5mbs
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

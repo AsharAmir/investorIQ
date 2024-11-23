@@ -27,13 +27,18 @@ export default function Marketplace() {
   useEffect(() => {
     if (!user) return;
 
-    // Fetch properties for the logged-in user
+    // Fetch properties - for admin, fetch all properties, for users, fetch only their properties
     const fetchProperties = async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from("properties")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .select("*, profiles:user_id (name, email)");
+
+      // Only filter by user_id if not admin
+      const { data, error } = await (user.role === "admin"
+        ? query.order("created_at", { ascending: false })
+        : query
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false }));
 
       if (error) {
         console.error("Error fetching properties:", error);
@@ -49,7 +54,7 @@ export default function Marketplace() {
       );
     };
 
-    // Fetch advisor requests for the logged-in user
+    // Fetch advisor requests
     const fetchAdvisorRequests = async () => {
       const { data, error } = await supabase
         .from("advisor_requests")
@@ -67,7 +72,9 @@ export default function Marketplace() {
     };
 
     fetchProperties();
-    fetchAdvisorRequests();
+    if (user.role !== "admin") {
+      fetchAdvisorRequests();
+    }
   }, [user]);
 
   const handleAddProperty = async (data: any) => {
@@ -77,27 +84,29 @@ export default function Marketplace() {
       const propertyData = {
         ...data,
         user_id: user.id,
-        iq_score: Math.floor(Math.random() * 5) + 5, // Random IQ score
+        iq_score: Math.floor(Math.random() * 5) + 5,
       };
 
       const { error } = await supabase
         .from("properties")
         .insert([propertyData]);
 
-      if (error) {
-        console.error("Error adding property:", error);
-        toast.error("Failed to add property");
-        return;
-      }
+      if (error) throw error;
 
       setIsAddModalOpen(false);
       toast.success("Property added successfully!");
+
       // Refetch properties
-      const { data: updatedProperties } = await supabase
+      const query = supabase
         .from("properties")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .select("*, profiles:user_id (name, email)");
+
+      const { data: updatedProperties } = await (user.role === "admin"
+        ? query.order("created_at", { ascending: false })
+        : query
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false }));
+
       setProperties(
         (updatedProperties || []).map((property) => ({
           ...property,
@@ -123,20 +132,44 @@ export default function Marketplace() {
     );
   };
 
-  // Function to handle property edits
-  const handleEditProperty = (updatedProperty: Property) => {
-    setProperties((prevProperties) =>
-      prevProperties.map((property) =>
-        property.id === updatedProperty.id ? updatedProperty : property
-      )
-    );
+  const handleEditProperty = async (updatedProperty: Property) => {
+    try {
+      const { error } = await supabase
+        .from("properties")
+        .update(updatedProperty)
+        .eq("id", updatedProperty.id);
+
+      if (error) throw error;
+
+      setProperties((prevProperties) =>
+        prevProperties.map((property) =>
+          property.id === updatedProperty.id ? updatedProperty : property
+        )
+      );
+      toast.success("Property updated successfully!");
+    } catch (error) {
+      console.error("Error updating property:", error);
+      toast.error("Failed to update property");
+    }
   };
 
-  // Function to handle property deletions
-  const handleDeleteProperty = (deletedPropertyId: string) => {
-    setProperties((prevProperties) =>
-      prevProperties.filter((property) => property.id !== deletedPropertyId)
-    );
+  const handleDeleteProperty = async (deletedPropertyId: string) => {
+    try {
+      const { error } = await supabase
+        .from("properties")
+        .delete()
+        .eq("id", deletedPropertyId);
+
+      if (error) throw error;
+
+      setProperties((prevProperties) =>
+        prevProperties.filter((property) => property.id !== deletedPropertyId)
+      );
+      toast.success("Property deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      toast.error("Failed to delete property");
+    }
   };
 
   return (
@@ -150,21 +183,25 @@ export default function Marketplace() {
           <div>
             <h1 className="text-4xl font-bold text-gray-900 flex items-center">
               <Building2 className="h-10 w-10 text-indigo-600 mr-3" />
-              My Properties
+              {user?.role === "admin" ? "All Properties" : "My Properties"}
             </h1>
             <p className="mt-2 text-lg text-gray-600">
-              Manage and analyze your real estate investments
+              {user?.role === "admin"
+                ? "Manage and oversee all property listings"
+                : "Manage and analyze your real estate investments"}
             </p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Add Property
-          </motion.button>
+          {user?.role !== "admin" && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add Property
+            </motion.button>
+          )}
         </motion.div>
 
         <motion.div
@@ -184,78 +221,61 @@ export default function Marketplace() {
           </div>
         </motion.div>
 
-        <AnimatePresence>
-          {filteredProperties.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-16"
-            >
-              <Building2 className="mx-auto h-16 w-16 text-gray-400" />
-              <p className="mt-4 text-xl text-gray-600">
-                No properties found. Add your first property to get started!
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {filteredProperties.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  advisorRequest={getAdvisorRequest(property.id)}
-                  onAnalyze={() => {
-                    setSelectedProperty(property);
-                    setIsAnalyzerOpen(true);
-                  }}
-                  onAskAI={() => {
-                    setSelectedProperty(property);
-                    setIsAIModalOpen(true);
-                  }}
-                  onRequestAdvisor={() => {
-                    setSelectedProperty(property);
-                    setIsAdvisorModalOpen(true);
-                  }}
-                  // Add these props:
-                  onEdit={handleEditProperty}
-                  onDelete={handleDeleteProperty}
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {selectedProperty && (
-          <>
-            <DealAnalyzer
-              property={selectedProperty}
-              isOpen={isAnalyzerOpen}
-              onClose={() => setIsAnalyzerOpen(false)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredProperties.map((property) => (
+            <PropertyCard
+              key={property.id}
+              property={property}
+              advisorRequest={getAdvisorRequest(property.id)}
+              onAnalyze={() => {
+                setSelectedProperty(property);
+                setIsAnalyzerOpen(true);
+              }}
+              onAskAI={() => {
+                setSelectedProperty(property);
+                setIsAIModalOpen(true);
+              }}
+              onRequestAdvisor={() => {
+                setSelectedProperty(property);
+                setIsAdvisorModalOpen(true);
+              }}
+              onEdit={handleEditProperty}
+              onDelete={handleDeleteProperty}
+              isAdmin={user?.role === "admin"}
             />
-            <AskAIModal
-              property={selectedProperty}
-              isOpen={isAIModalOpen}
-              onClose={() => setIsAIModalOpen(false)}
-            />
-            <RequestAdvisorModal
-              property={selectedProperty}
-              isOpen={isAdvisorModalOpen}
-              onClose={() => setIsAdvisorModalOpen(false)}
-            />
-          </>
-        )}
-
-        <AddPropertyModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSubmit={handleAddProperty}
-        />
+          ))}
+        </div>
       </div>
+
+      <AddPropertyModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddProperty}
+      />
+
+      {selectedProperty && (
+        <DealAnalyzer
+          isOpen={isAnalyzerOpen}
+          onClose={() => setIsAnalyzerOpen(false)}
+          property={selectedProperty}
+        />
+      )}
+
+      {selectedProperty && (
+        <AskAIModal
+          isOpen={isAIModalOpen}
+          onClose={() => setIsAIModalOpen(false)}
+          property={selectedProperty}
+        />
+      )}
+
+      {selectedProperty && (
+        <RequestAdvisorModal
+          isOpen={isAdvisorModalOpen}
+          onClose={() => setIsAdvisorModalOpen(false)}
+          property={selectedProperty}
+        />
+      )}
     </div>
   );
 }

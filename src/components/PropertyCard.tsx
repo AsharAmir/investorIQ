@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Trash2,
   Edit,
+  User,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { Property, AdvisorRequest } from "../types";
@@ -24,8 +25,9 @@ interface PropertyCardProps {
   onAskAI: (id: string) => void;
   onRequestAdvisor: (id: string) => void;
   onEdit: (property: Property) => void;
-  advisorRequest?: AdvisorRequest;
   onDelete: (deletedPropertyId: string) => void;
+  advisorRequest?: AdvisorRequest;
+  isAdmin?: boolean;
 }
 
 export default function PropertyCard({
@@ -36,6 +38,7 @@ export default function PropertyCard({
   onEdit,
   onDelete,
   advisorRequest,
+  isAdmin,
 }: PropertyCardProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -45,7 +48,7 @@ export default function PropertyCard({
     try {
       await supabase.from("properties").delete().eq("id", property.id);
       toast.success("Property deleted successfully");
-      onDelete(property.id); // Notify parent of deletion
+      onDelete(property.id);
       setIsDeleteModalOpen(false);
     } catch (error) {
       console.error("Error deleting property:", error);
@@ -64,7 +67,7 @@ export default function PropertyCard({
 
       toast.success("Property updated successfully");
       if (data) {
-        onEdit(data[0]); // Notify parent of update
+        onEdit(data[0]);
       }
       setIsEditModalOpen(false);
     } catch (error) {
@@ -119,7 +122,7 @@ export default function PropertyCard({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
-          <div className="absolute top-4 right-4 flex space-x-2">
+          {/* <div className="absolute top-4 right-4 flex space-x-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg"
@@ -131,22 +134,26 @@ export default function PropertyCard({
                 </span>
               </div>
             </motion.div>
-          </div>
+          </div> */}
           <div className="absolute top-4 left-4 flex space-x-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={() => setIsEditModalOpen(true)}
-              className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
-            >
-              <Edit className="h-4 w-4 text-blue-600" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
-            >
-              <Trash2 className="h-4 w-4 text-red-600" />
-            </motion.button>
+            {isAdmin && (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+                >
+                  <Edit className="h-4 w-4 text-blue-600" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </motion.button>
+              </>
+            )}
           </div>
         </div>
 
@@ -156,11 +163,19 @@ export default function PropertyCard({
               {property.title}
             </h3>
             <p className="text-gray-600">{property.address}</p>
-            <div className="mt-2 flex items-center">
-              <Building2 className="h-4 w-4 text-indigo-600 mr-2" />
-              <span className="text-sm text-gray-600">
-                {property.deal_type}
-              </span>
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex items-center">
+                <Building2 className="h-4 w-4 text-indigo-600 mr-2" />
+                <span className="text-sm text-gray-600">
+                  {property.deal_type}
+                </span>
+              </div>
+              {isAdmin && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <User className="h-4 w-4 mr-1" />
+                  Admin
+                </div>
+              )}
             </div>
           </div>
 
@@ -190,55 +205,56 @@ export default function PropertyCard({
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onAnalyze(property.id)}
-              className="col-span-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
-              Analyze Deal
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onAskAI(property.id)}
-              className="flex items-center justify-center p-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-              title="Ask AI"
-            >
-              <Brain className="h-5 w-5 text-indigo-600" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onRequestAdvisor(property.id)}
-              className="col-span-3 flex items-center justify-center p-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl hover:from-indigo-100 hover:to-purple-100 transition-colors"
-            >
-              <UserCog className="h-5 w-5 text-indigo-600 mr-2" />
-              <span className="text-sm font-medium text-indigo-600">
-                Request Advisor
-              </span>
-            </motion.button>
-          </div>
+          {!isAdmin && (
+            <div className="grid grid-cols-3 gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onAnalyze(property.id)}
+                className="col-span-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Analyze Deal
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onAskAI(property.id)}
+                className="flex items-center justify-center p-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                title="Ask AI"
+              >
+                <Brain className="h-5 w-5 text-indigo-600" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onRequestAdvisor(property.id)}
+                className="col-span-3 flex items-center justify-center p-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl hover:from-indigo-100 hover:to-purple-100 transition-colors"
+              >
+                <UserCog className="h-5 w-5 text-indigo-600 mr-2" />
+                <span className="text-sm font-medium text-indigo-600">
+                  Request Advisor
+                </span>
+              </motion.button>
+            </div>
+          )}
         </div>
       </motion.div>
+
+      {isEditModalOpen && (
+        <EditPropertyModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          property={editFormData}
+          setProperty={setEditFormData}
+          onConfirm={handleEdit}
+        />
+      )}
 
       {isDeleteModalOpen && (
         <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
-        />
-      )}
-
-      {isEditModalOpen && (
-        <EditPropertyModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          title="Edit Property"
-          property={editFormData}
-          setProperty={setEditFormData}
-          onConfirm={handleEdit}
         />
       )}
     </>

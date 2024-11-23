@@ -4,9 +4,9 @@ import {
   X,
   Home,
   Building2,
+  LogOut,
   Calendar,
   MessageCircle,
-  LogOut,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
@@ -16,12 +16,19 @@ export default function Navbar() {
   const { signOut, user } = useAuthStore();
   const navigate = useNavigate();
 
-  const navigation = [
-    { name: "Dashboard", href: "/", icon: Home },
-    { name: "Marketplace", href: "/marketplace", icon: Building2 },
-    { name: "Events", href: "/events", icon: Calendar },
-    { name: "Community", href: "/community", icon: MessageCircle },
-  ];
+  const navigation =
+    user?.role === "admin"
+      ? [
+          { name: "Dashboard", href: "/admin", icon: Home },
+          { name: "Marketplace", href: "/marketplace", icon: Building2 },
+        ]
+      : [
+          { name: "Dashboard", href: "/", icon: Home },
+          { name: "Marketplace", href: "/marketplace", icon: Building2 },
+          { name: "Dashboard", href: "/", icon: Home },
+          { name: "Events", href: "/events", icon: Calendar },
+          { name: "Community", href: "/community", icon: MessageCircle },
+        ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,7 +43,10 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Building2 className="h-8 w-8 text-brand-blue" />
               <span className="ml-2 text-xl font-bold text-white">
-                Investor IQ
+                Investor IQ{" "}
+                {user?.role === "admin" && (
+                  <span className="text-brand-blue">(Admin)</span>
+                )}
               </span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
