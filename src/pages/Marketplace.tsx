@@ -49,7 +49,7 @@ export default function Marketplace() {
       setProperties(
         (data || []).map((property) => ({
           ...property,
-          deal_type: property.deal_type as "Fix & Flip" | "BRRRR" | "Both",
+          deal_type: property.deal_type as "Fix & Flip" | "BRRRR",
         }))
       );
     };

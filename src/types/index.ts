@@ -17,7 +17,7 @@ export type Property = {
   iq_score: number;
   user_id: string;
   created_at: string;
-  deal_type?: "Fix & Flip" | "BRRRR" | "Both";
+  deal_type?: "Fix & Flip" | "BRRRR";
 };
 
 

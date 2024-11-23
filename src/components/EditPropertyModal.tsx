@@ -102,7 +102,7 @@ export default function EditPropertyModal({
               >
                 <option>Fix & Flip</option>
                 <option>BRRRR</option>
-                <option>Both</option>
+                {/* <option>Both</option> */}
               </select>
             </div>
 

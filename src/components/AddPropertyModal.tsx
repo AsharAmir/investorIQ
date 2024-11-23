@@ -235,7 +235,7 @@ export default function AddPropertyModal({
               >
                 <option>Fix & Flip</option>
                 <option>BRRRR</option>
-                <option>Both</option>
+                {/* <option>Both</option> */}
               </select>
             </div>
 
