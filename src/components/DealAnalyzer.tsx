@@ -9,14 +9,6 @@ interface DealAnalyzerProps {
   onClose: () => void;
 }
 
-interface EditPropertyModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  property: Property | null;
-  setProperty: (property: Property) => void;
-  onConfirm: () => void;
-}
-
 export default function DealAnalyzer({
   property,
   isOpen,
@@ -28,49 +20,148 @@ export default function DealAnalyzer({
     arv: 0,
     holding_costs: 0,
     roi: 0,
+    rent: 0,
+    refinance_rate: 0,
+    loan_amount: 0,
+    project_duration: 0,
+    closing_costs: 1500,
+    project_management_fee: 0,
+    annual_taxes: 0,
+    utilities: 0,
+    annual_insurance_premium: 0,
+    interest_points: 12,
+    other_fees: 1000,
+    hml_purchase: 86.5,
+    hml_repair: 86.5,
+    selling_costs: 1500,
+    turnkey_flip: 0,
+    current_rent: 0,
+    property_management: 0,
+    loan_fees: 0,
+    down_payment: 0,
+    vacancy_maintenance: 0,
+    refinance_loan_interest_points: 0,
+    refinance_loan_other_fees: 0,
   });
+  const [strategy, setStrategy] = useState<"Fix & Flip" | "BRRRR" | "Both">(
+    "Fix & Flip"
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const [netProfit, setNetProfit] = useState(0);
+  const [totalInvestment, setTotalInvestment] = useState(0);
+  const [cashFlow, setCashFlow] = useState(0);
+  const [cashOnCashReturn, setCashOnCashReturn] = useState(0);
 
   if (!isOpen) return null;
 
-  const calculateROI = async () => {
+  const calculateResults = async () => {
     setLoading(true);
     setError("");
 
     try {
-      const { purchase_price, rehab_cost, arv, holding_costs } = analysis;
+      const {
+        purchase_price,
+        rehab_cost,
+        arv,
+        holding_costs,
+        rent,
+        refinance_rate,
+        loan_amount,
+        project_duration,
+        closing_costs,
+        project_management_fee,
+        annual_taxes,
+        utilities,
+        annual_insurance_premium,
+        interest_points,
+        other_fees,
+        hml_purchase,
+        hml_repair,
+        selling_costs,
+        turnkey_flip,
+        current_rent,
+        property_management,
+        loan_fees,
+        down_payment,
+        vacancy_maintenance,
+        refinance_loan_interest_points,
+        refinance_loan_other_fees,
+      } = analysis;
 
-      // Validate inputs to avoid invalid calculations
+      // Validate inputs
       if (purchase_price <= 0 || arv <= 0) {
         throw new Error("Purchase price and ARV must be greater than zero.");
       }
 
-      const total_investment = purchase_price + rehab_cost + holding_costs;
-      const net_profit = arv - total_investment;
-      const roi =
-        total_investment > 0 ? (net_profit / total_investment) * 100 : 0;
+      // Convert percentages to decimals for calculations
+      const management_fee = (project_management_fee / 100) * purchase_price;
+      const interest_cost = (interest_points / 100) * loan_amount;
+      const refinance_fees =
+        (refinance_loan_interest_points / 100) * loan_amount +
+        refinance_loan_other_fees;
+      const monthly_property_management =
+        (property_management / 100) * current_rent;
 
-      // Debugging logs for clarity
-      console.log("Debugging ROI Calculation:");
-      console.log("Purchase Price:", purchase_price);
-      console.log("Rehab Cost:", rehab_cost);
-      console.log("ARV:", arv);
-      console.log("Holding Costs:", holding_costs);
-      console.log("Total Investment:", total_investment);
-      console.log("Net Profit:", net_profit);
-      console.log("ROI:", roi);
+      // Calculate Total Investment
+      const total_investment =
+        purchase_price +
+        rehab_cost +
+        holding_costs +
+        closing_costs +
+        management_fee +
+        annual_taxes +
+        utilities +
+        annual_insurance_premium +
+        interest_cost +
+        other_fees +
+        hml_purchase +
+        hml_repair +
+        selling_costs +
+        turnkey_flip +
+        monthly_property_management * project_duration +
+        loan_fees +
+        down_payment +
+        vacancy_maintenance +
+        refinance_fees;
+      setTotalInvestment(total_investment);
 
-      // Update analysis state with calculated ROI
-      setAnalysis((prev) => ({
-        ...prev,
-        roi: parseFloat(roi.toFixed(2)), // Ensure the ROI is a rounded number
-      }));
+      if (strategy === "Fix & Flip" || strategy === "Both") {
+        // Fix & Flip ROI Calculation
+        const net_profit = arv - total_investment;
+        const roi = (net_profit / total_investment) * 100;
+
+        setNetProfit(net_profit);
+        setAnalysis((prev) => ({
+          ...prev,
+          roi: parseFloat(roi.toFixed(2)),
+        }));
+      }
+
+      if (strategy === "BRRRR" || strategy === "Both") {
+        // Monthly Cash Flow Calculation
+        const monthly_loan_payment = (loan_amount * refinance_rate) / 100 / 12;
+        const cash_flow =
+          rent - monthly_loan_payment - monthly_property_management;
+
+        // Cash on Cash Return Calculation
+        const annual_cash_flow = cash_flow * 12;
+        const cash_on_cash_return = (annual_cash_flow / total_investment) * 100;
+
+        setCashFlow(cash_flow);
+        setCashOnCashReturn(cash_on_cash_return);
+        setAnalysis((prev) => ({
+          ...prev,
+          roi: parseFloat(cash_on_cash_return.toFixed(2)),
+        }));
+      }
+
       setShowResults(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to calculate ROI");
-      console.error("Error in calculateROI:", err);
+      setError(
+        err instanceof Error ? err.message : "Calculation error occurred."
+      );
     } finally {
       setLoading(false);
     }
@@ -108,6 +199,39 @@ export default function DealAnalyzer({
               </div>
 
               <div className="space-y-6">
+                <div className="flex space-x-4 mb-6">
+                  <button
+                    onClick={() => setStrategy("Fix & Flip")}
+                    className={`px-4 py-2 rounded-lg ${
+                      strategy === "Fix & Flip" || strategy === "Both"
+                        ? "bg-brand-blue text-white"
+                        : "bg-gray-100 text-brand-navy"
+                    }`}
+                  >
+                    Fix & Flip
+                  </button>
+                  <button
+                    onClick={() => setStrategy("BRRRR")}
+                    className={`px-4 py-2 rounded-lg ${
+                      strategy === "BRRRR" || strategy === "Both"
+                        ? "bg-brand-blue text-white"
+                        : "bg-gray-100 text-brand-navy"
+                    }`}
+                  >
+                    BRRRR
+                  </button>
+                  <button
+                    onClick={() => setStrategy("Both")}
+                    className={`px-4 py-2 rounded-lg ${
+                      strategy === "Both"
+                        ? "bg-brand-blue text-white"
+                        : "bg-gray-100 text-brand-navy"
+                    }`}
+                  >
+                    Both
+                  </button>
+                </div>
+
                 <div className="bg-gradient-to-r from-brand-navy/5 to-brand-blue/10 p-6 rounded-2xl mb-6">
                   <h3 className="font-semibold text-brand-navy mb-2">
                     Property Details
@@ -119,40 +243,6 @@ export default function DealAnalyzer({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-brand-navy mb-2">
-                      Purchase Price
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.purchase_price}
-                      onChange={(e) =>
-                        setAnalysis({
-                          ...analysis,
-                          purchase_price: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-brand-navy mb-2">
-                      Estimated Rehab Cost
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.rehab_cost}
-                      onChange={(e) =>
-                        setAnalysis({
-                          ...analysis,
-                          rehab_cost: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-brand-navy mb-2">
                       After Repair Value (ARV)
@@ -169,23 +259,349 @@ export default function DealAnalyzer({
                       }
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-brand-navy mb-2">
-                      Holding Costs
+                      Project Duration (1-12 months)
                     </label>
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.holding_costs}
+                      value={analysis.project_duration}
+                      min={1}
+                      max={12}
+                      onChange={(e) => {
+                        const value = Math.min(Number(e.target.value), 12);
+                        setAnalysis({
+                          ...analysis,
+                          project_duration: value,
+                        });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Purchase Price ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.purchase_price}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          holding_costs: Number(e.target.value),
+                          purchase_price: Number(e.target.value),
                         })
                       }
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Closing Costs ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.closing_costs}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          closing_costs: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Repair Costs ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.rehab_cost}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          rehab_cost: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Project Management Fee (%)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.project_management_fee}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          project_management_fee: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Annual Taxes ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.annual_taxes}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          annual_taxes: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Utilities ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.utilities}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          utilities: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Annual Insurance Premium ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.annual_insurance_premium}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          annual_insurance_premium: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Interest / Points (%)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.interest_points}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          interest_points: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Other Fees ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.other_fees}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          other_fees: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      HML for Purchase ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.hml_purchase}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          hml_purchase: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      HML for Repair ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.hml_repair}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          hml_repair: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Selling Costs ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.selling_costs}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          selling_costs: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Turnkey Flip ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.turnkey_flip}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          turnkey_flip: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Current Rent / Market Rent ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.current_rent}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          current_rent: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Property Management (%) per month
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.property_management}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          property_management: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Loan Fees ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.loan_fees}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          loan_fees: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-navy mb-2">
+                      Down Payment ($)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                      value={analysis.down_payment}
+                      onChange={(e) =>
+                        setAnalysis({
+                          ...analysis,
+                          down_payment: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  {(strategy === "BRRRR" || strategy === "Both") && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-navy mb-2">
+                          Vacancy and Maintenance ($)
+                        </label>
+                        <input
+                          type="number"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                          value={analysis.vacancy_maintenance}
+                          onChange={(e) =>
+                            setAnalysis({
+                              ...analysis,
+                              vacancy_maintenance: Number(e.target.value),
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-navy mb-2">
+                          Monthly Rent (For BRRRR) ($)
+                        </label>
+                        <input
+                          type="number"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                          value={analysis.rent}
+                          onChange={(e) =>
+                            setAnalysis({
+                              ...analysis,
+                              rent: Number(e.target.value),
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-navy mb-2">
+                          Refinance Rate (For BRRRR) (%)
+                        </label>
+                        <input
+                          type="number"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
+                          value={analysis.refinance_rate}
+                          onChange={(e) =>
+                            setAnalysis({
+                              ...analysis,
+                              refinance_rate: Number(e.target.value),
+                            })
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {error && (
@@ -197,36 +613,11 @@ export default function DealAnalyzer({
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={calculateROI}
+                  onClick={calculateResults}
                   disabled={loading}
                   className="w-full bg-brand-navy text-white px-6 py-4 rounded-xl hover:bg-brand-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                 >
-                  {loading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin h-5 w-5 mr-3"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Calculating...
-                    </span>
-                  ) : (
-                    "Calculate ROI"
-                  )}
+                  {loading ? "Calculating..." : "Calculate"}
                 </motion.button>
 
                 <AnimatePresence>
@@ -243,39 +634,50 @@ export default function DealAnalyzer({
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <span className="text-brand-navy/70">
-                            Total Investment:
-                          </span>
-                          <span className="font-semibold text-brand-navy">
-                            $
-                            {(
-                              analysis.purchase_price +
-                              analysis.rehab_cost +
-                              analysis.holding_costs
-                            ).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-brand-navy/70">
-                            Potential Profit:
-                          </span>
-                          <span className="font-semibold text-brand-navy">
-                            $
-                            {(
-                              analysis.arv -
-                              (analysis.purchase_price +
-                                analysis.rehab_cost +
-                                analysis.holding_costs)
-                            ).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-lg pt-2 border-t border-brand-navy/10">
-                          <span className="text-brand-navy/70">
-                            Return on Investment:
+                            ROI ({strategy}):
                           </span>
                           <span className="font-bold text-xl text-brand-navy">
                             {analysis.roi.toFixed(2)}%
                           </span>
                         </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-brand-navy/70">
+                            Total Investment:
+                          </span>
+                          <span className="font-bold text-xl text-brand-navy">
+                            ${totalInvestment.toLocaleString()}
+                          </span>
+                        </div>
+                        {strategy === "Fix & Flip" || strategy === "Both" ? (
+                          <div className="flex justify-between items-center">
+                            <span className="text-brand-navy/70">
+                              Net Profit:
+                            </span>
+                            <span className="font-bold text-xl text-brand-navy">
+                              ${netProfit.toLocaleString()}
+                            </span>
+                          </div>
+                        ) : null}
+                        {strategy === "BRRRR" || strategy === "Both" ? (
+                          <>
+                            <div className="flex justify-between items-center">
+                              <span className="text-brand-navy/70">
+                                Monthly Cash Flow:
+                              </span>
+                              <span className="font-bold text-xl text-brand-navy">
+                                ${cashFlow.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-brand-navy/70">
+                                Cash on Cash Return:
+                              </span>
+                              <span className="font-bold text-xl text-brand-navy">
+                                {cashOnCashReturn.toFixed(2)}%
+                              </span>
+                            </div>
+                          </>
+                        ) : null}
                       </div>
                     </motion.div>
                   )}
@@ -286,153 +688,5 @@ export default function DealAnalyzer({
         </motion.div>
       )}
     </AnimatePresence>
-  );
-}
-
-export function EditPropertyModal({
-  isOpen,
-  onClose,
-  property,
-  setProperty,
-  onConfirm,
-}: EditPropertyModalProps) {
-  const [formData, setFormData] = useState<Property | null>(null);
-
-  useEffect(() => {
-    if (property) {
-      setFormData(property);
-    }
-  }, [property]);
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-
-    if (formData) {
-      const updatedValue =
-        name === "price" ? (value === "" ? 0 : Number(value)) : value;
-
-      // Update local state for `formData`
-      setFormData((prev) => ({
-        ...prev!,
-        [name]: updatedValue,
-      }));
-
-      // Update parent property state explicitly with Property type
-      setProperty({
-        ...formData,
-        [name]: updatedValue,
-      });
-    }
-  };
-
-  if (!isOpen || !formData) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="relative bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Edit Property</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          <form className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price === 0 ? "" : formData.price}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Deal Type
-              </label>
-              <select
-                name="deal_type"
-                value={formData.deal_type}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              >
-                <option>Fix & Flip</option>
-                <option>BRRRR</option>
-                {/* <option>Both</option> */}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows={4}
-                value={formData.description || ""}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onConfirm}
-                className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Confirm
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
   );
 }

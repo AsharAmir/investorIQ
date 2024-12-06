@@ -101,14 +101,14 @@ export default function AdminDashboard() {
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
             <CheckCircle className="w-4 h-4 mr-1" />
-            Approved
+            Buy
           </span>
         );
       case "rejected":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
             <XCircle className="w-4 h-4 mr-1" />
-            Rejected
+            Do not buy
           </span>
         );
       default:

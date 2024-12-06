@@ -18,6 +18,8 @@ export type Property = {
   user_id: string;
   created_at: string;
   deal_type?: "Fix & Flip" | "BRRRR";
+  status?: "Deal Pending" | "Under Contract" | "Sold";
+  // status: string;
 };
 
 
@@ -25,8 +27,30 @@ export interface DealAnalysis {
   purchase_price: number;
   rehab_cost: number;
   arv: number;
+  rent: number;
+  refinance_rate: number;
+  loan_amount: number;
   holding_costs: number;
   roi: number;
+  closing_costs: number;
+  project_duration: number;
+  project_management_fee: number;
+  annual_taxes: number;
+  utilities: number;
+  annual_insurance_premium: number;
+  interest_points: number;
+  other_fees: number;
+  hml_purchase: number;
+  hml_repair: number;
+  selling_costs: number;
+  turnkey_flip: number;
+  current_rent: number;
+  property_management: number;
+  loan_fees: number;
+  down_payment: number;
+  vacancy_maintenance: number;
+  refinance_loan_interest_points: number;
+  refinance_loan_other_fees: number;
 }
 
 export interface AdvisorRequest {

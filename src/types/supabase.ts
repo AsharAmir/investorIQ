@@ -47,6 +47,7 @@ export interface Database {
           iq_score: number
           user_id: string
           created_at: string
+          status: string
         }
         Insert: {
           id?: string

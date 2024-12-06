@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import logo from "../assets/logo.png";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,13 +38,13 @@ export default function Navbar() {
 
   return (
     <nav className="bg-brand-navy shadow-lg">
+      <div className="flex items-center"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Building2 className="h-8 w-8 text-brand-blue" />
+              <img src={logo} alt="Investor IQ Logo" className="h-48 w-48" />
               <span className="ml-2 text-xl font-bold text-white">
-                Investor IQ{" "}
                 {user?.role === "admin" && (
                   <span className="text-brand-blue">(Admin)</span>
                 )}

@@ -50,6 +50,7 @@ export default function Marketplace() {
         (data || []).map((property) => ({
           ...property,
           deal_type: property.deal_type as "Fix & Flip" | "BRRRR",
+          status: property.status as "Deal Pending" | "Under Contract" | "Sold",
         }))
       );
     };

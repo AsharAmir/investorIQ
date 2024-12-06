@@ -78,25 +78,25 @@ export default function PropertyCard({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "approved":
-        return (
-          <div className="flex items-center text-green-700 bg-green-50 px-3 py-1 rounded-full text-sm">
-            <CheckCircle className="w-4 h-4 mr-1" />
-            Approved
-          </div>
-        );
-      case "rejected":
-        return (
-          <div className="flex items-center text-red-700 bg-red-50 px-3 py-1 rounded-full text-sm">
-            <XCircle className="w-4 h-4 mr-1" />
-            Rejected
-          </div>
-        );
-      case "pending":
+      case "Deal Pending":
         return (
           <div className="flex items-center text-yellow-700 bg-yellow-50 px-3 py-1 rounded-full text-sm">
             <Clock className="w-4 h-4 mr-1" />
-            Pending
+            Deal Pending
+          </div>
+        );
+      case "Under Contract":
+        return (
+          <div className="flex items-center text-blue-700 bg-blue-50 px-3 py-1 rounded-full text-sm">
+            <Clock className="w-4 h-4 mr-1" />
+            Under Contract
+          </div>
+        );
+      case "Sold":
+        return (
+          <div className="flex items-center text-gray-700 bg-gray-50 px-3 py-1 rounded-full text-sm">
+            <CheckCircle className="w-4 h-4 mr-1" />
+            Sold
           </div>
         );
       default:
@@ -189,9 +189,11 @@ export default function PropertyCard({
             <TrendingUp className="h-6 w-6 text-green-500" />
           </div>
 
+          <div className="mb-6">{getStatusBadge(property.status ?? "")}</div>
+
           {advisorRequest && (
             <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-              {getStatusBadge(advisorRequest.status)}
+              {getStatusBadge(advisorRequest.status ?? "")}
               {advisorRequest.response && (
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-700">
@@ -243,6 +245,7 @@ export default function PropertyCard({
       {isEditModalOpen && (
         <EditPropertyModal
           isOpen={isEditModalOpen}
+          title="Edit Property"
           onClose={() => setIsEditModalOpen(false)}
           property={editFormData}
           setProperty={setEditFormData}
