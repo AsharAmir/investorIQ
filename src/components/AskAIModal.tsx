@@ -26,7 +26,7 @@ export default function AskAIModal({
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/ask-ai", {
+      const response = await fetch("https://investoriq-production.up.railway.app/api/ask-ai", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
