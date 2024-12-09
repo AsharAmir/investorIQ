@@ -2,18 +2,25 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from firebase_admin import credentials, firestore, initialize_app
 import os
+import json
+import base64
 from dotenv import load_dotenv
 import google.generativeai as genai
+
 # Load environment variables from .env file
 load_dotenv()
-
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Initialize Firebase Admin
-cred = credentials.Certificate('config/investoriq-79baa-firebase-adminsdk-k34ya-6eac8df930.json')
+# Decode Firebase credentials from the FIREBASE_CREDENTIALS environment variable
+firebase_credentials = os.getenv("FIREBASE_CREDENTIALS")
+if not firebase_credentials:
+    raise ValueError("FIREBASE_CREDENTIALS environment variable is missing!")
+
+decoded_credentials = base64.b64decode(firebase_credentials)
+cred = credentials.Certificate(json.loads(decoded_credentials))
 initialize_app(cred)
 db = firestore.client()
 
