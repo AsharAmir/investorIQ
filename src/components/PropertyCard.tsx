@@ -122,19 +122,6 @@ export default function PropertyCard({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
-          {/* <div className="absolute top-4 right-4 flex space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg"
-            >
-              <div className="flex items-center">
-                <Star className="h-4 w-4 text-yellow-400" />
-                <span className="ml-1 text-sm font-medium">
-                  {property.iq_score}/10
-                </span>
-              </div>
-            </motion.div>
-          </div> */}
           <div className="absolute top-4 left-4 flex space-x-2">
             {isAdmin && (
               <>
@@ -179,17 +166,62 @@ export default function PropertyCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Price</p>
-              <p className="text-2xl font-bold text-indigo-600">
+              <p className="text-xl font-bold text-indigo-600">
                 ${property.price.toLocaleString()}
               </p>
             </div>
-            <TrendingUp className="h-6 w-6 text-green-500" />
+            <div>
+              <p className="text-sm text-gray-500">ARV</p>
+              <p className="text-xl font-bold text-green-600">
+                ${property.arv?.toLocaleString() || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Repair Cost</p>
+              <p className="text-lg text-gray-700">
+                ${property.repairCost?.toLocaleString() || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Profit for Selling</p>
+              <p className="text-lg text-gray-700">
+                ${property.profitForSelling?.toLocaleString() || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">ROI</p>
+              <p className="text-lg text-gray-700">
+                {property.roi ? `${property.roi}%` : "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Rent</p>
+              <p className="text-lg text-gray-700">
+                ${property.rent?.toLocaleString() || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Net Cash Flow</p>
+              <p className="text-lg text-gray-700">
+                ${property.netCashFlow?.toLocaleString() || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Cash on Cash Return</p>
+              <p className="text-lg text-gray-700">
+                {property.cashOnCashReturn
+                  ? `${property.cashOnCashReturn}%`
+                  : "N/A"}
+              </p>
+            </div>
           </div>
 
-          <div className="mb-6">{getStatusBadge(property.status ?? "")}</div>
+          <div className="mb-6 mt-4">
+            {getStatusBadge(property.status ?? "")}
+          </div>
 
           {advisorRequest && (
             <div className="mb-6 p-4 bg-gray-50 rounded-xl">

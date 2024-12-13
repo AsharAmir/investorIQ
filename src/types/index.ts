@@ -19,8 +19,16 @@ export type Property = {
   created_at: string;
   deal_type?: "Fix & Flip" | "BRRRR";
   status?: "Deal Pending" | "Under Contract" | "Sold";
-  // status: string;
+  repair_cost?: number;
+  profit_for_selling?: number;
+  roi?: number;
+  rent?: number;
+  net_cash_flow?: number;
+  cash_on_cash_return?: number;
+  arv?: number;
+  property_id?: string;
 };
+
 
 
 export interface DealAnalysis {

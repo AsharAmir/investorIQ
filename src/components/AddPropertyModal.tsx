@@ -26,6 +26,14 @@ export default function AddPropertyModal({
     price: "",
     dealType: "Fix & Flip",
     description: "",
+    repairCost: "",
+    profitForSelling: "",
+    roi: "",
+    rent: "",
+    netCashFlow: "",
+    cashOnCashReturn: "",
+    arv: "",
+    propertyId: "",
   });
 
   const onDrop = useCallback(
@@ -82,6 +90,14 @@ export default function AddPropertyModal({
         price: "",
         dealType: "Fix & Flip",
         description: "",
+        repairCost: "",
+        profitForSelling: "",
+        roi: "",
+        rent: "",
+        netCashFlow: "",
+        cashOnCashReturn: "",
+        arv: "",
+        propertyId: "",
       });
       setImages([]);
       onClose();
@@ -205,21 +221,132 @@ export default function AddPropertyModal({
                   }
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Repair Cost
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.repairCost}
+                  onChange={(e) =>
+                    setFormData({ ...formData, repairCost: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Profit for Selling
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.profitForSelling}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      profitForSelling: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ROI
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.roi}
+                  onChange={(e) =>
+                    setFormData({ ...formData, roi: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rent
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.rent}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rent: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Net Cash Flow
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.netCashFlow}
+                  onChange={(e) =>
+                    setFormData({ ...formData, netCashFlow: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Cash on Cash Return
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.cashOnCashReturn}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      cashOnCashReturn: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ARV
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.arv}
+                  onChange={(e) =>
+                    setFormData({ ...formData, arv: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Property ID
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.propertyId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, propertyId: e.target.value })
+                  }
+                />
+              </div>
             </div>
 
             <div>

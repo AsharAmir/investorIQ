@@ -28,17 +28,38 @@ export default function Marketplace() {
     if (!user) return;
 
     // Fetch properties - for admin, fetch all properties, for users, fetch only their properties
-    const fetchProperties = async () => {
-      const query = supabase
-        .from("properties")
-        .select("*, profiles:user_id (name, email)");
+    // const fetchProperties = async () => {
+    //   const query = supabase
+    //     .from("properties")
+    //     .select("*, profiles:user_id (name, email)");
 
-      // Only filter by user_id if not admin
-      const { data, error } = await (user.role === "admin"
-        ? query.order("created_at", { ascending: false })
-        : query
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false }));
+    //   // Only filter by user_id if not admin
+    //   const { data, error } = await (user.role === "admin"
+    //     ? query.order("created_at", { ascending: false })
+    //     : query
+    //         .eq("user_id", user.id)
+    //         .order("created_at", { ascending: false }));
+
+    //   if (error) {
+    //     console.error("Error fetching properties:", error);
+    //     toast.error("Failed to load properties");
+    //     return;
+    //   }
+
+    //   setProperties(
+    //     (data || []).map((property) => ({
+    //       ...property,
+    //       deal_type: property.deal_type as "Fix & Flip" | "BRRRR",
+    //       status: property.status as "Deal Pending" | "Under Contract" | "Sold",
+    //     }))
+    //   );
+    // };
+
+    const fetchProperties = async () => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*, profiles:user_id (name, email)")
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching properties:", error);
@@ -192,7 +213,7 @@ export default function Marketplace() {
                 : "Manage and analyze your real estate investments"}
             </p>
           </div>
-          {user?.role !== "admin" && (
+          {user?.role == "admin" && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

@@ -60,6 +60,14 @@ export const addProperty = async (propertyData: any) => {
       images: propertyData.images || [],
       user_id: user.id,
       iq_score: Math.floor(Math.random() * 5) + 5, //confirm logic how to obtain the iq score
+      repair_cost: propertyData.repairCost || 0,
+      profit_for_selling: propertyData.profitForSelling || 0,
+      roi: propertyData.roi || 0,
+      rent: propertyData.rent || 0,
+      net_cash_flow: propertyData.netCashFlow || 0,
+      cash_on_cash_return: propertyData.cashOnCashReturn || 0,
+      arv: propertyData.arv || 0,
+      property_id: propertyData.propertyId || null,
     };
 
     const { data, error } = await supabase
