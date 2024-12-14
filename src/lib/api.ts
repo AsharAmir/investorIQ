@@ -1,5 +1,5 @@
-const API_URL = 'https://investoriq-production.up.railway.app/api';
-// const API_URL = 'http://localhost:5000/api';
+// const API_URL = 'https://investoriq-production.up.railway.app/api';
+const API_URL = 'http://localhost:5000/api';
 
 export const api = {
   async getProperties() {

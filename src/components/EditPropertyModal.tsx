@@ -4,11 +4,9 @@ import { X } from "lucide-react";
 interface EditPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
   property: any;
   setProperty: (property: any) => void;
   onConfirm: () => void;
-  children?: React.ReactNode;
 }
 
 export default function EditPropertyModal({
@@ -51,61 +49,59 @@ export default function EditPropertyModal({
           </div>
 
           <form className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
+            {/* Common Fields */}
+            {[
+              { label: "Title", name: "title", type: "text" },
+              { label: "Price", name: "price", type: "number" },
+              { label: "Address", name: "address", type: "text" },
+              { label: "Repair Cost", name: "repairCost", type: "number" },
+              {
+                label: "Profit for Selling",
+                name: "profitForSelling",
+                type: "number",
+              },
+              { label: "ROI", name: "roi", type: "number" },
+              { label: "Rent", name: "rent", type: "number" },
+              { label: "Net Cash Flow", name: "netCashFlow", type: "number" },
+              {
+                label: "Cash on Cash Return",
+                name: "cashOnCashReturn",
+                type: "number",
+              },
+              { label: "ARV", name: "arv", type: "number" },
+              { label: "Property ID", name: "propertyId", type: "text" },
+            ].map(({ label, name, type }) => (
+              <div key={name}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {label}
+                </label>
+                <input
+                  type={type}
+                  name={name}
+                  value={formData[name] || ""}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                />
+              </div>
+            ))}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              />
-            </div>
-
+            {/* Dropdown for Deal Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Deal Type
               </label>
               <select
-                name="deal_type"
-                value={formData.deal_type}
+                name="dealType"
+                value={formData.dealType || ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               >
                 <option>Fix & Flip</option>
                 <option>BRRRR</option>
-                {/* <option>Both</option> */}
               </select>
             </div>
 
+            {/* Description Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description
@@ -113,12 +109,13 @@ export default function EditPropertyModal({
               <textarea
                 name="description"
                 rows={4}
-                value={formData.description}
+                value={formData.description || ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               />
             </div>
 
+            {/* Action Buttons */}
             <div className="flex justify-end space-x-4">
               <button
                 type="button"

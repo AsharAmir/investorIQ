@@ -58,7 +58,7 @@ export default function Marketplace() {
     const fetchProperties = async () => {
       const { data, error } = await supabase
         .from("properties")
-        .select("*, profiles:user_id (name, email)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -119,9 +119,7 @@ export default function Marketplace() {
       toast.success("Property added successfully!");
 
       // Refetch properties
-      const query = supabase
-        .from("properties")
-        .select("*, profiles:user_id (name, email)");
+      const query = supabase.from("properties").select("*");
 
       const { data: updatedProperties } = await (user.role === "admin"
         ? query.order("created_at", { ascending: false })

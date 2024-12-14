@@ -15,12 +15,12 @@ export default function DealAnalyzer({
   onClose,
 }: DealAnalyzerProps) {
   const [analysis, setAnalysis] = useState<DealAnalysis>({
-    purchase_price: property.price,
-    rehab_cost: 0,
-    arv: 0,
+    purchase_price: property.price || 0,
+    rehab_cost: property.repairCost || 0,
+    arv: property.arv || 0,
     holding_costs: 0,
-    roi: 0,
-    rent: 0,
+    roi: property.roi || 0,
+    rent: property.rent || 0,
     refinance_rate: 0,
     loan_amount: 0,
     project_duration: 0,
@@ -35,7 +35,7 @@ export default function DealAnalyzer({
     hml_repair: 86.5,
     selling_costs: 1500,
     turnkey_flip: 0,
-    current_rent: 0,
+    current_rent: property.rent || 0,
     property_management: 0,
     loan_fees: 0,
     down_payment: 0,
@@ -43,8 +43,9 @@ export default function DealAnalyzer({
     refinance_loan_interest_points: 0,
     refinance_loan_other_fees: 0,
   });
+
   const [strategy, setStrategy] = useState<"Fix & Flip" | "BRRRR" | "Both">(
-    "Fix & Flip"
+    property.dealType || "Fix & Flip"
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -53,6 +54,40 @@ export default function DealAnalyzer({
   const [totalInvestment, setTotalInvestment] = useState(0);
   const [cashFlow, setCashFlow] = useState(0);
   const [cashOnCashReturn, setCashOnCashReturn] = useState(0);
+
+  useEffect(() => {
+    // Update analysis when property changes
+    setAnalysis({
+      purchase_price: property.price || 0,
+      rehab_cost: property.repairCost || 0,
+      arv: property.arv || 0,
+      holding_costs: 0,
+      roi: property.roi || 0,
+      rent: property.rent || 0,
+      refinance_rate: 0,
+      loan_amount: 0,
+      project_duration: 0,
+      closing_costs: 0,
+      project_management_fee: 0,
+      annual_taxes: 0,
+      utilities: 0,
+      annual_insurance_premium: 0,
+      interest_points: 0,
+      other_fees: 0,
+      hml_purchase: 0,
+      hml_repair: 0,
+      selling_costs: 0,
+      turnkey_flip: 0,
+      current_rent: property.rent || 0,
+      property_management: 0,
+      loan_fees: 0,
+      down_payment: 0,
+      vacancy_maintenance: 0,
+      refinance_loan_interest_points: 0,
+      refinance_loan_other_fees: 0,
+    });
+    setStrategy(property.dealType || "Fix & Flip");
+  }, [property]);
 
   if (!isOpen) return null;
 

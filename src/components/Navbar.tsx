@@ -26,9 +26,8 @@ export default function Navbar() {
       : [
           { name: "Dashboard", href: "/", icon: Home },
           { name: "Marketplace", href: "/marketplace", icon: Building2 },
-          { name: "Dashboard", href: "/", icon: Home },
-          { name: "Events", href: "/events", icon: Calendar },
-          { name: "Community", href: "/community", icon: MessageCircle },
+          // { name: "Events", href: "/events", icon: Calendar },
+          // { name: "Community", href: "/community", icon: MessageCircle },
         ];
 
   const handleSignOut = async () => {
