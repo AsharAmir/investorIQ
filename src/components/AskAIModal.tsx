@@ -26,16 +26,19 @@ export default function AskAIModal({
     setError("");
 
     try {
-      const response = await fetch("https://investoriq-production.up.railway.app/api/ask-ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          property,
-          question,
-        }),
-      });
+      const response = await fetch(
+        "https://investoriq-production.up.railway.app/api/ask-ai",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            property,
+            question,
+          }),
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to get AI response");
 
@@ -77,27 +80,59 @@ export default function AskAIModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Address</p>
-                  <p className="text-gray-900">{property.address}</p>
+                  <p className="text-gray-900">{property.address || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Price</p>
                   <p className="text-gray-900">
-                    ${property.price.toLocaleString()}
+                    ${property.price?.toLocaleString() || "N/A"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Deal Type</p>
-                  <p className="text-gray-900">{property.dealType}</p>
+                  <p className="text-gray-900">{property.dealType || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">IQ Score</p>
-                  <p className="text-gray-900">{property.iq_score}/10</p>
+                  <p className="text-sm font-medium text-gray-500">ARV</p>
+                  <p className="text-gray-900">
+                    ${property.arv?.toLocaleString() || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Repair Cost
+                  </p>
+                  <p className="text-gray-900">
+                    ${property.repairCost?.toLocaleString() || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Profit for Selling
+                  </p>
+                  <p className="text-gray-900">
+                    ${property.profitForSelling?.toLocaleString() || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">ROI</p>
+                  <p className="text-gray-900">
+                    {property.roi ? `${property.roi}%` : "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Rent</p>
+                  <p className="text-gray-900">
+                    ${property.rent?.toLocaleString() || "N/A"}
+                  </p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-sm font-medium text-gray-500">
                     Description
                   </p>
-                  <p className="text-gray-900">{property.description}</p>
+                  <p className="text-gray-900">
+                    {property.description || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>

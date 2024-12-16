@@ -285,11 +285,12 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.arv}
+                      value={analysis.arv === 0 ? "" : analysis.arv}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          arv: Number(e.target.value),
+                          arv:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -301,14 +302,19 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.project_duration}
+                      value={
+                        analysis.project_duration === 0
+                          ? ""
+                          : analysis.project_duration
+                      }
                       min={1}
                       max={12}
                       onChange={(e) => {
                         const value = Math.min(Number(e.target.value), 12);
                         setAnalysis({
                           ...analysis,
-                          project_duration: value,
+                          project_duration:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         });
                       }}
                     />
@@ -320,11 +326,16 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.purchase_price}
+                      value={
+                        analysis.purchase_price === 0
+                          ? ""
+                          : analysis.purchase_price
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          purchase_price: Number(e.target.value),
+                          purchase_price:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -336,11 +347,16 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.closing_costs}
+                      value={
+                        analysis.closing_costs === 0
+                          ? ""
+                          : analysis.closing_costs
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          closing_costs: Number(e.target.value),
+                          closing_costs:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -352,11 +368,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.rehab_cost}
+                      value={
+                        analysis.rehab_cost === 0 ? "" : analysis.rehab_cost
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          rehab_cost: Number(e.target.value),
+                          rehab_cost:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -368,11 +387,16 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.project_management_fee}
+                      value={
+                        analysis.project_management_fee === 0
+                          ? ""
+                          : analysis.project_management_fee
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          project_management_fee: Number(e.target.value),
+                          project_management_fee:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -384,11 +408,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.annual_taxes}
+                      value={
+                        analysis.annual_taxes === 0 ? "" : analysis.annual_taxes
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          annual_taxes: Number(e.target.value),
+                          annual_taxes:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -400,11 +427,12 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.utilities}
+                      value={analysis.utilities === 0 ? "" : analysis.utilities}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          utilities: Number(e.target.value),
+                          utilities:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -416,11 +444,16 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.annual_insurance_premium}
+                      value={
+                        analysis.annual_insurance_premium === 0
+                          ? ""
+                          : analysis.annual_insurance_premium
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          annual_insurance_premium: Number(e.target.value),
+                          annual_insurance_premium:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -432,11 +465,16 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.interest_points}
+                      value={
+                        analysis.interest_points === 0
+                          ? ""
+                          : analysis.interest_points
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          interest_points: Number(e.target.value),
+                          interest_points:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -448,11 +486,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.other_fees}
+                      value={
+                        analysis.other_fees === 0 ? "" : analysis.other_fees
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          other_fees: Number(e.target.value),
+                          other_fees:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -464,11 +505,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.hml_purchase}
+                      value={
+                        analysis.hml_purchase === 0 ? "" : analysis.hml_purchase
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          hml_purchase: Number(e.target.value),
+                          hml_purchase:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -480,11 +524,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.hml_repair}
+                      value={
+                        analysis.hml_repair === 0 ? "" : analysis.hml_repair
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          hml_repair: Number(e.target.value),
+                          hml_repair:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -496,11 +543,16 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.selling_costs}
+                      value={
+                        analysis.selling_costs === 0
+                          ? ""
+                          : analysis.selling_costs
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          selling_costs: Number(e.target.value),
+                          selling_costs:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -512,11 +564,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.turnkey_flip}
+                      value={
+                        analysis.turnkey_flip === 0 ? "" : analysis.turnkey_flip
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          turnkey_flip: Number(e.target.value),
+                          turnkey_flip:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -528,11 +583,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.current_rent}
+                      value={
+                        analysis.current_rent === 0 ? "" : analysis.current_rent
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          current_rent: Number(e.target.value),
+                          current_rent:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -544,11 +602,17 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.property_management}
+                      value={
+                        analysis.property_management === 0
+                          ? ""
+                          : analysis.property_management
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          property_management: Number(e.target.value),
+                          property_management:
+                            e.target.value === "" ? 0 : Number(e.target.value),
+                          s,
                         })
                       }
                     />
@@ -560,11 +624,12 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.loan_fees}
+                      value={analysis.loan_fees === 0 ? "" : analysis.loan_fees}
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          loan_fees: Number(e.target.value),
+                          loan_fees:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -576,11 +641,14 @@ export default function DealAnalyzer({
                     <input
                       type="number"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                      value={analysis.down_payment}
+                      value={
+                        analysis.down_payment === 0 ? "" : analysis.down_payment
+                      }
                       onChange={(e) =>
                         setAnalysis({
                           ...analysis,
-                          down_payment: Number(e.target.value),
+                          down_payment:
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                     />
@@ -594,11 +662,18 @@ export default function DealAnalyzer({
                         <input
                           type="number"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                          value={analysis.vacancy_maintenance}
+                          value={
+                            analysis.vacancy_maintenance === 0
+                              ? ""
+                              : analysis.vacancy_maintenance
+                          }
                           onChange={(e) =>
                             setAnalysis({
                               ...analysis,
-                              vacancy_maintenance: Number(e.target.value),
+                              vacancy_maintenance:
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value),
                             })
                           }
                         />
@@ -610,11 +685,14 @@ export default function DealAnalyzer({
                         <input
                           type="number"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                          value={analysis.rent}
+                          value={analysis.rent === 0 ? "" : analysis.rent}
                           onChange={(e) =>
                             setAnalysis({
                               ...analysis,
-                              rent: Number(e.target.value),
+                              rent:
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value),
                             })
                           }
                         />
@@ -626,11 +704,18 @@ export default function DealAnalyzer({
                         <input
                           type="number"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all"
-                          value={analysis.refinance_rate}
+                          value={
+                            analysis.refinance_rate === 0
+                              ? ""
+                              : analysis.refinance_rate
+                          }
                           onChange={(e) =>
                             setAnalysis({
                               ...analysis,
-                              refinance_rate: Number(e.target.value),
+                              refinance_rate:
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value),
                             })
                           }
                         />

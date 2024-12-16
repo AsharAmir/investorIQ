@@ -12,6 +12,8 @@ import {
   Trash2,
   Edit,
   User,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { Property, AdvisorRequest } from "../types";
@@ -43,6 +45,25 @@ export default function PropertyCard({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState(property);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(
+      (prevIndex) =>
+        property.images && prevIndex < property.images.length - 1
+          ? prevIndex + 1
+          : 0 // Loop back to the first image
+    );
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex(
+      (prevIndex) =>
+        property.images && prevIndex > 0
+          ? prevIndex - 1
+          : property.images.length - 1 // Loop back to the last image
+    );
+  };
 
   const handleDelete = async () => {
     try {
@@ -114,34 +135,40 @@ export default function PropertyCard({
         className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl"
       >
         <div className="relative h-64">
-          <div className="absolute inset-0">
-            <img
-              src={property.images?.[0]}
-              alt={property.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          </div>
-          <div className="absolute top-4 left-4 flex space-x-2">
-            {isAdmin && (
-              <>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+          {property.images && property.images.length > 0 ? (
+            <>
+              {/* Current Image */}
+              <img
+                src={property.images[currentImageIndex]}
+                alt={`Property image ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover"
+              />
+
+              {/* Left Button */}
+              {property.images.length > 1 && (
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-opacity"
                 >
-                  <Edit className="h-4 w-4 text-blue-600" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+              )}
+
+              {/* Right Button */}
+              {property.images.length > 1 && (
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-opacity"
                 >
-                  <Trash2 className="h-4 w-4 text-red-600" />
-                </motion.button>
-              </>
-            )}
-          </div>
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              )}
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-500">
+              No Images Available
+            </div>
+          )}
         </div>
 
         <div className="p-6">

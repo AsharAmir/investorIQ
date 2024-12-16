@@ -36,6 +36,18 @@ export default function AddPropertyModal({
     propertyId: "",
   });
 
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (!user) {
@@ -49,6 +61,8 @@ export default function AddPropertyModal({
           uploadImage(file, `${user.id}`)
         );
         const uploadedUrls = await Promise.all(uploadPromises);
+
+        // Add new images to the gallery
         setImages((prev) => [...prev, ...uploadedUrls]);
         toast.success("Images uploaded successfully!");
       } catch (error) {
@@ -101,6 +115,7 @@ export default function AddPropertyModal({
       });
       setImages([]);
       onClose();
+      toast.success("Property added successfully");
     } catch (error) {
       console.error("Error adding property:", error);
       toast.error("Failed to add property");
@@ -135,7 +150,7 @@ export default function AddPropertyModal({
                 className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg ${
                   isDragActive
                     ? "border-indigo-500 bg-indigo-50"
-                    : "border-gray-300"
+                    : "border-gray-300 bg-gray-50"
                 }`}
               >
                 <div className="space-y-1 text-center">
@@ -161,7 +176,7 @@ export default function AddPropertyModal({
                 </div>
               )}
 
-              <div className="mt-4 grid grid-cols-4 gap-4">
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <AnimatePresence>
                   {images.map((url, index) => (
                     <motion.div
@@ -173,7 +188,7 @@ export default function AddPropertyModal({
                     >
                       <img
                         src={url}
-                        alt={`Property ${index + 1}`}
+                        alt={`Property image ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -203,6 +218,21 @@ export default function AddPropertyModal({
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
                   }
                 />
               </div>
@@ -342,9 +372,8 @@ export default function AddPropertyModal({
                   required
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   value={formData.propertyId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, propertyId: e.target.value })
-                  }
+                  name="propertyId"
+                  onChange={handleChange}
                 />
               </div>
             </div>
@@ -356,9 +385,8 @@ export default function AddPropertyModal({
               <select
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.dealType}
-                onChange={(e) =>
-                  setFormData({ ...formData, dealType: e.target.value })
-                }
+                name="dealType"
+                onChange={handleChange}
               >
                 <option>Fix & Flip</option>
                 <option>BRRRR</option>
@@ -374,9 +402,8 @@ export default function AddPropertyModal({
                 rows={4}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
+                name="description"
+                onChange={handleChange}
               />
             </div>
 
