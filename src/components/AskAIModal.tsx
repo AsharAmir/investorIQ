@@ -28,6 +28,7 @@ export default function AskAIModal({
     try {
       const response = await fetch(
         "https://investoriq-production.up.railway.app/api/ask-ai",
+        // "http://localhost:5000/api/ask-ai",
         {
           method: "POST",
           headers: {

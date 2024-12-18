@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface EditPropertyModalProps {
   isOpen: boolean;
@@ -9,14 +10,22 @@ interface EditPropertyModalProps {
   onConfirm: () => void;
 }
 
-export default function EditPropertyModal({
+const EditPropertyModal = ({
   isOpen,
   onClose,
   property,
   setProperty,
   onConfirm,
-}: EditPropertyModalProps) {
-  const [formData, setFormData] = useState(property);
+}: EditPropertyModalProps) => {
+  const [formData, setFormData] = useState({
+    title: property.title || "",
+    address: property.address || "",
+    price: property.price || "",
+    dealType: property.dealType || "Fix & Flip",
+    description: property.description || "",
+    repairCost: property.repairCost || "",
+  });
+  const [images, setImages] = useState(property.images || []);
 
   useEffect(() => {
     setFormData(property);
@@ -28,8 +37,26 @@ export default function EditPropertyModal({
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev: typeof formData) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setProperty((prev: typeof property) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const updatedPropertyData = {
+        ...formData,
+        images,
+      };
+
+      await onConfirm(updatedPropertyData);
+      toast.success("Property updated successfully");
+      window.location.reload(); // Force a reload after successful edit
+    } catch (error) {
+      console.error("Error updating property:", error);
+      toast.error("Failed to update property");
+    }
   };
 
   if (!isOpen) return null;
@@ -48,7 +75,7 @@ export default function EditPropertyModal({
             </button>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Common Fields */}
             {[
               { label: "Title", name: "title", type: "text" },
@@ -125,8 +152,7 @@ export default function EditPropertyModal({
                 Cancel
               </button>
               <button
-                type="button"
-                onClick={onConfirm}
+                type="submit"
                 className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Confirm
@@ -137,4 +163,6 @@ export default function EditPropertyModal({
       </div>
     </div>
   );
-}
+};
+
+export default EditPropertyModal;

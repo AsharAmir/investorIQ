@@ -169,6 +169,26 @@ export default function PropertyCard({
               No Images Available
             </div>
           )}
+          <div className="absolute top-4 left-4 flex space-x-2">
+            {isAdmin && (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+                >
+                  <Edit className="h-4 w-4 text-blue-600" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </motion.button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="p-6">
