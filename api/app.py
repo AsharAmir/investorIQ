@@ -46,6 +46,14 @@ def add_property():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/properties/<property_id>', methods=['DELETE'])
+def delete_property(property_id):
+    try:
+        property_ref = db.collection('properties').document(property_id)
+        property_ref.delete()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # @app.route('/api/ask-ai', methods=['POST'])
 # def ask_ai():

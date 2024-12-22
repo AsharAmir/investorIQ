@@ -1,5 +1,5 @@
-const API_URL = 'https://investoriq-production.up.railway.app/api';
-// const API_URL = 'http://localhost:5000/api';
+// const API_URL = 'https://investoriq-production.up.railway.app/api';
+const API_URL = 'http://localhost:5000/api';
 
 export const api = {
   async getProperties() {
@@ -18,6 +18,24 @@ export const api = {
     });
     if (!response.ok) throw new Error('Failed to add property');
     return response.json();
+  },
+
+  async deleteProperty(propertyId: string) {
+    console.log("attempting to delete property with id: ", propertyId);
+    try {
+      const response = await fetch(`${API_URL}/properties/${propertyId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const errorDetails = await response.text();
+        console.error('Failed to delete property:', errorDetails);
+        throw new Error('Failed to delete property');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error in deleteProperty:', error);
+      throw error;
+    }
   },
 
   async getAdvisorRequests() {

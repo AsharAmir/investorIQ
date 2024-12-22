@@ -105,6 +105,20 @@ export const getProperties = async () => {
   }
 };
 
+export const deleteProperty = async (propertyId: string) => {
+  try {
+    const { error } = await supabase
+      .from('properties')
+      .delete()
+      .eq('id', propertyId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting property:', error);
+    throw error;
+  }
+};
+
 // Auth helpers
 export const signIn = async (email: string, password: string) => {
   try {
