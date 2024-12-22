@@ -132,7 +132,7 @@ export default function PropertyCard({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         whileHover={{ y: -5 }}
-        className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl"
+        className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-2xl"
       >
         <div className="relative h-64">
           {property.images && property.images.length > 0 ? (
@@ -193,20 +193,20 @@ export default function PropertyCard({
 
         <div className="p-6">
           <div className="mb-4">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
               {property.title}
             </h3>
             <p className="text-gray-600">{property.address}</p>
             <div className="mt-2 flex items-center justify-between">
               <div className="flex items-center">
-                <Building2 className="h-4 w-4 text-indigo-600 mr-2" />
+                <Building2 className="h-5 w-5 text-indigo-600 mr-2" />
                 <span className="text-sm text-gray-600">
                   {property.deal_type}
                 </span>
               </div>
               {isAdmin && (
                 <div className="flex items-center text-sm text-gray-500">
-                  <User className="h-4 w-4 mr-1" />
+                  <User className="h-5 w-5 mr-1" />
                   Admin
                 </div>
               )}

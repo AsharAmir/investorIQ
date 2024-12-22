@@ -10,6 +10,7 @@ import RequestAdvisorModal from "../components/RequestAdvisorModal";
 import { supabase } from "../lib/supabase";
 import type { Property, AdvisorRequest } from "../types";
 import toast from "react-hot-toast";
+import EditPropertyModal from "../components/EditPropertyModal"; // Import the EditPropertyModal component
 
 export default function Marketplace() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -294,6 +295,23 @@ export default function Marketplace() {
           isOpen={isAdvisorModalOpen}
           onClose={() => setIsAdvisorModalOpen(false)}
           property={selectedProperty}
+        />
+      )}
+
+      {selectedProperty && (
+        <EditPropertyModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          property={selectedProperty}
+          setProperty={setSelectedProperty}
+          onConfirm={handleEditProperty}
+          onUpdatePropertyList={(updatedProperty) => {
+            setProperties((prevProperties) =>
+              prevProperties.map((property) =>
+                property.id === updatedProperty.id ? updatedProperty : property
+              )
+            );
+          }} // Pass the callback function
         />
       )}
     </div>
