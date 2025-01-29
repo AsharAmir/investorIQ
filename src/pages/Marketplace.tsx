@@ -24,6 +24,7 @@ export default function Marketplace() {
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuthStore();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
