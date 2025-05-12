@@ -1,4 +1,4 @@
-name: Build, Push & Deploy to Minikube
+name: Build, Push & Deploy to Minikube (edited)
 on:
   push:
     branches: [ main ]
