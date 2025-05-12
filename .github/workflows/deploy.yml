@@ -1,0 +1,57 @@
+name: Build, Push & Deploy to Minikube
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Uses your local runner
+
+    steps:
+      # 1. Checkout code
+      - uses: actions/checkout@v3
+
+      # 2. Set up Minikube Docker env
+      - name: Configure Docker for Minikube
+        run: |
+          echo "Setting up Minikube Docker..."
+          eval $(minikube docker-env)
+
+      # 3. Build & tag frontend
+      - name: Build Frontend Image
+        run: |
+          docker build -t asharamir/investoriq-frontend:latest .
+          docker tag asharamir/investoriq-frontend:latest asharamir/investoriq-frontend:$GITHUB_SHA
+
+      # 4. Build & tag backend
+      - name: Build Backend Image
+        run: |
+          cd api
+          docker build -t asharamir/investoriq-backend:latest .
+          docker tag asharamir/investoriq-backend:latest asharamir/investoriq-backend:$GITHUB_SHA
+          cd ..
+
+      # 5. Login to Docker Hub
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # 6. Push images to Docker Hub
+      - name: Push Images
+        run: |
+          docker push asharamir/investoriq-frontend:latest
+          docker push asharamir/investoriq-frontend:$GITHUB_SHA
+          docker push asharamir/investoriq-backend:latest
+          docker push asharamir/investoriq-backend:$GITHUB_SHA
+
+      # 7. Deploy to Minikube
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/
+          echo "Deployment complete!"
+
+      # 8. Verify deployment
+      - name: Check Pods
+        run: |
+          kubectl get pods -n investoriq-ns -o wide
+          kubectl get svc -n investoriq-ns
