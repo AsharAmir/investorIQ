@@ -1,7 +1,7 @@
-name: Build, Push & Deploy to Minikube (updated)
+name: Build, Push & Deploy to Minikube
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -47,11 +47,8 @@ jobs:
       # 7. Deploy to Minikube
       - name: Deploy to Kubernetes
         run: |
-          cd ..
-          cd k8s
-          kubectl apply -f .
+          kubectl apply -f k8s/
           echo "Deployment complete!"
-
 
       # 8. Verify deployment
       - name: Check Pods
