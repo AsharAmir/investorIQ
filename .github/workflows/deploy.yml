@@ -1,7 +1,7 @@
 name: Build, Push & Deploy to Minikube
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   deploy:
