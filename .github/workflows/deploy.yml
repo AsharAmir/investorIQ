@@ -47,8 +47,11 @@ jobs:
       # 7. Deploy to Minikube
       - name: Deploy to Kubernetes
         run: |
-          kubectl apply -f k8s/
+          cd ..
+          cd k8s
+          kubectl apply -f .
           echo "Deployment complete!"
+
 
       # 8. Verify deployment
       - name: Check Pods
